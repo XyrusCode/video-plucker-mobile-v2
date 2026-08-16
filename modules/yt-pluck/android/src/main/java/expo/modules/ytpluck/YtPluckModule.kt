@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * The single native surface the JS layer talks to. Wraps the yt-dlp engine, the foreground
@@ -33,7 +34,7 @@ class YtPluckModule : Module() {
     AsyncFunction("initEngineAsync") {
       val context = appContext.reactContext ?: return@AsyncFunction false
       ensureNotificationChannels(context)
-      val inited = EngineManager.init(context)
+      val inited = runBlocking { EngineManager.init(context) }
       if (inited) {
         // Self-heal: pull the latest yt-dlp binary in the background, best-effort.
         moduleScope.launch { EngineManager.updateEngine(context) }
@@ -44,12 +45,12 @@ class YtPluckModule : Module() {
     /** Pull the latest yt-dlp binary now (Settings → "Update downloader" style calls). */
     AsyncFunction("updateEngineAsync") {
       val context = appContext.reactContext ?: return@AsyncFunction false
-      EngineManager.updateEngine(context)
+      runBlocking { EngineManager.updateEngine(context) }
     }
 
     /** Fetch metadata only. Rejects with the yt-dlp error message on failure. */
     AsyncFunction("probeAsync") { url: String ->
-      EngineManager.probe(url)
+      runBlocking { EngineManager.probe(url) }
     }
 
     // --- Downloads ----------------------------------------------------------------------

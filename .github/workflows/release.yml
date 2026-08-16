@@ -32,16 +32,16 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Build release APKs
+      - name: Build release APK
         working-directory: android
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           ./gradlew assembleRelease
 
-      - name: Collect APKs
+      - name: Collect APK
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/*.apk dist/
+          cp android/app/build/outputs/apk/release/app-release.apk dist/app-universal-release.apk
 
       - name: Extract release notes
         run: |
@@ -68,7 +68,4 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile-v2/v${GITHUB_REF_NAME#v}/app-universal-release.apk" --file dist/app-universal-release.apk --remote
-          npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile-v2/v${GITHUB_REF_NAME#v}/app-arm64-v8a-release.apk" --file dist/app-arm64-v8a-release.apk --remote
-          npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile-v2/v${GITHUB_REF_NAME#v}/app-armeabi-v7a-release.apk" --file dist/app-armeabi-v7a-release.apk --remote
-          npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile-v2/v${GITHUB_REF_NAME#v}/app-x86_64-release.apk" --file dist/app-x86_64-release.apk --remote
         continue-on-error: true

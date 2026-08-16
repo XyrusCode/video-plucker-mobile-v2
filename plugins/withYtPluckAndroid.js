@@ -5,8 +5,9 @@
  *  1. Manifest: leanback/TV + touchscreen feature flags, legacy storage permission (maxSdk 28),
  *     extractNativeLibs on the application, and a SEND (share-target) intent-filter on
  *     MainActivity so the app appears in the Android share sheet.
- *  2. Build: per-ABI splits + universal APK, and legacy packaging so the bundled yt-dlp
- *     native libs (Python payloads) aren't extracted per-ABI.
+ *  2. Build: legacy packaging so the bundled yt-dlp native libs (Python payloads) stay as
+ *     files. A single universal APK is produced (the template bundles all ABIs); the
+ *     `isUniversalApk` abi-split option was removed in newer AGP/Gradle 9 toolchains.
  */
 const {
   withAndroidManifest,
@@ -22,14 +23,6 @@ const TOUCHSCREEN = 'android.hardware.touchscreen';
 const GRADLE_BLOCK = `
 // Added by withYtPluckAndroid (Video Plucker V2)
 android {
-  splits {
-    abi {
-      isUniversalApk = true
-      enable true
-      reset()
-      include "armeabi-v7a", "arm64-v8a", "x86_64"
-    }
-  }
   packaging {
     jniLibs {
       useLegacyPackaging = true

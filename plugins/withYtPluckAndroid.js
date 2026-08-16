@@ -37,7 +37,8 @@ function withManifestMods(config) {
     const app = AndroidConfig.Manifest.getMainApplicationOrThrow(manifest);
 
     // ---- uses-feature flags (TV leanback support, like V1) ----
-    const features = (app['uses-feature'] = app['uses-feature'] || []);
+    // NOTE: uses-feature lives at manifest ROOT level, not on <application>.
+    const features = (manifest.manifest['uses-feature'] = manifest.manifest['uses-feature'] || []);
     for (const name of [LEANBACK, TOUCHSCREEN]) {
       if (!features.some((f) => f.$ && f.$['android:name'] === name)) {
         features.push({ $: { 'android:name': name, 'android:required': 'false' } });

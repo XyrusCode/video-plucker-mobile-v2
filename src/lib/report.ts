@@ -3,7 +3,7 @@
 
 import { Linking } from 'react-native';
 
-const REPO = 'XyrusCode/video-plucker-v2';
+const REPO = 'XyrusCode/video-plucker-mobile-v2';
 
 /** Open a pre-filled issue. Best-effort; never throws. */
 export function openIssue(params: { title: string; body: string }): void {

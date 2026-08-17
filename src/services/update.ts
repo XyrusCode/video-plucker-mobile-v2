@@ -5,7 +5,7 @@ import * as Application from 'expo-application';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 
-const REPO = 'XyrusCode/video-plucker';
+const REPO = 'XyrusCode/video-plucker-mobile-v2';
 
 export interface UpdateInfo {
   latestVersion: string;

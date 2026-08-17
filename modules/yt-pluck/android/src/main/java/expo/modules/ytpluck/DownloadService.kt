@@ -533,7 +533,7 @@ fun reportIssueUrl(p: JobProgress, appVersion: String): String {
     appendLine("```")
   }
   val query = "title=${Uri.encode(title)}&body=${Uri.encode(body)}"
-  return "https://github.com/XyrusCode/video-plucker/issues/new?$query"
+  return "https://github.com/XyrusCode/video-plucker-mobile-v2/issues/new?$query"
 }
 
 private fun appVersion(context: Context): String =

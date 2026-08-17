@@ -1,5 +1,13 @@
 // Cookie resolution: pull the login session out of the system WebView cookie store and hand
 // yt-dlp a real Netscape cookies.txt file. Mirrors V1's resolveCookies + Netscape writer.
+//
+// Three sources, in precedence order (all written as durable files under filesDir except the
+// last, which is a cache temp):
+//  1. An imported cookies.txt (Cookie Manager) — full-fidelity, user-provided.
+//  2. A saved WebView-login session (Cookie Manager → "Save cookies") — persisted at export
+//     time so it survives and is visible in the UI, exactly like V1's Save Cookies.
+//  3. A live re-export of the current WebView session at download time (cache temp, deleted
+//     by the native side after the run).
 
 import YtPluckModule from 'yt-pluck';
 import { usePrefs } from '../stores/prefs';
@@ -38,28 +46,35 @@ function domainHost(url: string): string {
 }
 
 /**
- * Resolve the cookies yt-dlp should use for [url]. Returns the absolute path to a cookies
- * file, or null when the user has no session for the platform.
- *
- * 1. An imported cookies.txt (Cookie Manager) wins — it's already on disk at a real path.
- * 2. Otherwise the WebView session is exported to a temp Netscape file.
- *
- * VK spans three hosts (vk.com / vk.ru / vkvideo.ru) — cookies are collected from every
- * domain so a vkvideo.ru URL gets matching cookies too.
+ * The origins likely to hold cookies for a platform. YouTube (and most sites) set cookies on
+ * www. but the browser tab lives on m. — collect from every variant so the export never
+ * comes back empty, plus VK's extra hosts (vk.ru / vkvideo.ru).
  */
-export async function resolveCookiesFile(url: string): Promise<string | null> {
-  const platform = platformForVideoUrl(url);
-  if (!platform) return null;
+function cookieOriginsFor(platform: SitePlatform): string[] {
+  const origins = new Set<string>([platform.cookieDomain, ...platform.cookieDomains]);
+  for (const origin of [...origins]) {
+    const host = domainHost(origin);
+    if (host.startsWith('www.')) origins.add(origin.replace('www.', 'm.'));
+    else if (host.startsWith('m.')) origins.add(origin.replace('m.', 'www.'));
+  }
+  return [...origins];
+}
 
-  const imported = usePrefs.getState().importedCookies[platform.cookieKey];
-  if (imported) return imported.path;
-
-  const domains = [platform.cookieDomain, ...platform.cookieDomains];
+/**
+ * Export the WebView's session for [platform] to a Netscape file and return its absolute
+ * path, or null when the session holds nothing (user not signed in). `durable` writes to the
+ * app's files dir (a saved session); otherwise it writes a cache temp that DownloadService
+ * deletes after the run.
+ */
+export async function exportCookiesToFile(
+  platform: SitePlatform,
+  durable: boolean
+): Promise<string | null> {
   const lines: string[] = [];
   const seen = new Set<string>();
-  for (const domain of domains) {
-    const host = domainHost(domain);
-    const raw = rawCookieFor(platform, domain);
+  for (const origin of cookieOriginsFor(platform)) {
+    const host = domainHost(origin);
+    const raw = rawCookieFor(platform, origin);
     if (!raw) continue;
     for (const cookie of raw.split(';')) {
       const trimmed = cookie.trim();
@@ -73,17 +88,38 @@ export async function resolveCookiesFile(url: string): Promise<string | null> {
   }
   if (lines.length === 0) return null;
 
-  const header = '# Netscape HTTP Cookie File\n# Manually exported from Video Plucker\n';
-  const file = await YtPluckModule.saveCookiesFileAsync(platform.cookieKey, header + lines.join('\n') + '\n');
-  return file;
+  const header = '# Netscape HTTP Cookie File\n# Exported from Video Plucker\n';
+  return YtPluckModule.saveCookiesFileAsync(
+    platform.cookieKey,
+    header + lines.join('\n') + '\n',
+    durable ? 'session' : 'temp'
+  );
 }
 
 /**
- * Persist an imported cookies.txt under the platform's cookie key. The file lands in the app's
- * cache dir (not device-visible) and takes precedence over the WebView session export.
+ * Resolve the cookies yt-dlp should use for [url]. Returns the absolute path to a cookies
+ * file, or null when the user has no session for the platform.
+ */
+export async function resolveCookiesFile(url: string): Promise<string | null> {
+  const platform = platformForVideoUrl(url);
+  if (!platform) return null;
+
+  const imported = usePrefs.getState().importedCookies[platform.cookieKey];
+  if (imported) return imported.path;
+
+  const saved = usePrefs.getState().savedCookieSessions[platform.cookieKey];
+  if (saved) return saved.path;
+
+  // No persisted session — live-export the current WebView session as a cache temp.
+  return exportCookiesToFile(platform, false);
+}
+
+/**
+ * Persist an imported cookies.txt under the platform's cookie key. The file lands in the
+ * app's files dir (not device-visible) and takes precedence over the WebView session export.
  */
 export async function saveImportedCookies(platformKey: string, text: string): Promise<string> {
-  const path = await YtPluckModule.saveCookiesFileAsync(platformKey, text);
+  const path = await YtPluckModule.saveCookiesFileAsync(platformKey, text, 'imported');
   if (!path) throw new Error('Could not write the cookies file');
   return path;
 }

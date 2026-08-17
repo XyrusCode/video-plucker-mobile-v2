@@ -7,8 +7,8 @@ export const colors = {
   border: '#2A2F3A',
   text: '#E8EAF0',
   textDim: '#9AA1AF',
-  accent: '#FF3D3D',
-  accentDim: '#B32020',
+  accent: '#3B82F6',
+  accentDim: '#1D4ED8',
   ok: '#3ECF6E',
   warn: '#F0B429',
 } as const;

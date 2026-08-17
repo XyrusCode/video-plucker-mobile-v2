@@ -12,11 +12,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as Application from 'expo-application';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ProbeResult, QualityId } from 'yt-pluck';
 import { Card, EmptyState, GhostButton, PrimaryButton, Row, Screen } from '../components/ui';
 import { formatDuration } from '../lib/format';
 import { platformForExtractorKey, platformForVideoUrl } from '../lib/platforms';
+import { openIssue } from '../lib/report';
 import { QUALITIES, VIDEO_QUALITIES, qualityHeightLabel } from '../lib/quality';
 import { useJobs } from '../stores/jobs';
 import { usePrefs } from '../stores/prefs';
@@ -141,6 +143,23 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
         {phase === 'error' && (
           <Card style={styles.card}>
             <Text style={styles.errorText}>{error}</Text>
+            <GhostButton
+              label="Report"
+              onPress={() =>
+                openIssue({
+                  title: `Analysis failed: ${lastAnalyzedUrl.slice(0, 80)}`,
+                  body: [
+                    `**App:** Video Plucker ${Application.nativeApplicationVersion ?? '4.12.0'}`,
+                    `**URL:** ${lastAnalyzedUrl}`,
+                    '**Error:**',
+                    '```',
+                    error ?? '',
+                    '```',
+                  ].join('\n'),
+                })
+              }
+              style={styles.reportBtn}
+            />
           </Card>
         )}
 
@@ -223,6 +242,7 @@ const styles = StyleSheet.create({
   analyzeBtn: { flex: 2 },
   card: { marginTop: spacing.lg, alignItems: 'center', gap: spacing.sm },
   errorText: { color: colors.warn, fontSize: 14, lineHeight: 20 },
+  reportBtn: { marginTop: spacing.xs },
   result: { marginTop: spacing.lg },
   metaRow: { flexDirection: 'row', gap: spacing.md },
   thumb: { width: 96, height: 54, borderRadius: radii.sm, backgroundColor: colors.panel2 },

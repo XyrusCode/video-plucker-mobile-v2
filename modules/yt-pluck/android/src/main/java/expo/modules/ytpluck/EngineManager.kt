@@ -36,15 +36,45 @@ object EngineManager {
     runCatching { YoutubeDL.updateYoutubeDL(context.applicationContext) }.isSuccess
   }
 
-  /** Fetch metadata only (yt-dlp `-J`). Throws on failure — the JS layer surfaces the message. */
-  suspend fun probe(url: String): Map<String, Any?> = withContext(Dispatchers.IO) {
-    val info = YoutubeDL.getInfo(url)
+  /**
+   * Fetch metadata only (yt-dlp `-J`). Never throws: failures return a `{ok=false, error}`
+   * map with a readable message so the JS layer never sees a bare "call to function
+   * `YTPluck.probeAsync` rejected" rejection.
+   *
+   * Self-heals like downloads: ensures the engine is initialized first, normalizes the URL
+   * for the engine, and on a stale-engine signature updates yt-dlp and retries once.
+   */
+  suspend fun probe(context: Context, url: String): Map<String, Any?> = withContext(Dispatchers.IO) {
+    val failure = { msg: String ->
+      mapOf("ok" to false, "error" to msg)
+    }
+    if (!initialized && !init(context)) {
+      return@withContext failure(
+        "The downloader engine could not start. Restart the app, or tap Settings → Update " +
+          "downloader, then try again."
+      )
+    }
+    val target = normalizeForEngine(url)
+    var result = runCatching { YoutubeDL.getInfo(target) }
+    if (result.isFailure) {
+      val msg = result.exceptionOrNull()!!.message?.takeIf { it.isNotBlank() }
+        ?: "Analysis failed. Update the downloader in Settings and try again."
+      if (isStaleEngineError(msg) && updateEngine(context)) {
+        result = runCatching { YoutubeDL.getInfo(target) }
+      }
+      if (result.isFailure) {
+        val retryMsg = result.exceptionOrNull()!!.message?.takeIf { it.isNotBlank() } ?: msg
+        return@withContext failure(retryMsg)
+      }
+    }
+    val info = result.getOrThrow()
     val heights = info.formats
       ?.mapNotNull { it.height.takeIf { h -> h > 0 } }
       ?.distinct()
       ?.sorted()
       ?: emptyList()
     mapOf(
+      "ok" to true,
       "title" to (info.title ?: url),
       "thumbnailUrl" to info.thumbnail,
       "durationSeconds" to (info.duration.takeIf { it > 0 } ?: -1),

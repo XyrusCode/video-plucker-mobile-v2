@@ -522,7 +522,7 @@ private fun isLoginRequiredError(message: String): Boolean {
 fun reportIssueUrl(p: JobProgress, appVersion: String): String {
   val title = "Download failed: ${p.title.take(80)}"
   val body = buildString {
-    appendLine("**App:** Video Plucker (Mobile V2) $appVersion")
+    appendLine("**App:** Video Plucker 4.12.0 $appVersion")
     appendLine("**Progress:** ${p.percent.toInt()}%")
     appendLine("**Title:** ${p.title}")
     appendLine("**URL:** ${p.url}")
@@ -533,7 +533,7 @@ fun reportIssueUrl(p: JobProgress, appVersion: String): String {
     appendLine("```")
   }
   val query = "title=${Uri.encode(title)}&body=${Uri.encode(body)}"
-  return "https://github.com/XyrusCode/video-plucker-mobile-v2/issues/new?$query"
+  return "https://github.com/XyrusCode/video-plucker/issues/new?$query"
 }
 
 private fun appVersion(context: Context): String =

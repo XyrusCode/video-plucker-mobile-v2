@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import { Card, GhostButton, PrimaryButton, Row, Screen } from '../components/ui';
-import { saveImportedCookies } from '../lib/cookies';
+import { exportCookiesToFile, saveImportedCookies } from '../lib/cookies';
 import { formatDate } from '../lib/format';
 import { platformForCookieKey, SUPPORTED_PLATFORMS, type SitePlatform } from '../lib/platforms';
 import { usePrefs } from '../stores/prefs';
@@ -45,8 +45,11 @@ export default function CookiesScreen() {
 
 function PlatformModal({ platform, onClose }: { platform: SitePlatform; onClose: () => void }) {
   const imported = usePrefs((s) => s.importedCookies[platform.cookieKey] ?? null);
+  const savedSession = usePrefs((s) => s.savedCookieSessions[platform.cookieKey] ?? null);
   const setImportedCookies = usePrefs((s) => s.setImportedCookies);
   const clearImportedCookies = usePrefs((s) => s.clearImportedCookies);
+  const setSavedCookieSession = usePrefs((s) => s.setSavedCookieSession);
+  const clearSavedCookieSession = usePrefs((s) => s.clearSavedCookieSession);
   const [showLogin, setShowLogin] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [note, setNote] = React.useState<string | null>(null);
@@ -75,8 +78,32 @@ function PlatformModal({ platform, onClose }: { platform: SitePlatform; onClose:
     }
   };
 
+  /** "Done — export my cookies": actually save the login session to a durable file now. */
+  const saveSession = async () => {
+    setBusy(true);
+    setNote(null);
+    try {
+      const path = await exportCookiesToFile(platform, true);
+      if (!path) {
+        setNote(
+          'No session found. Make sure you are signed in, then try "Save cookies" again.'
+        );
+        return;
+      }
+      clearImportedCookies(platform.cookieKey);
+      setSavedCookieSession(platform.cookieKey, path);
+      setShowLogin(false);
+      setNote('Cookies saved. Downloads will use your ' + platform.name + ' session.');
+    } catch {
+      setNote('Could not save the session. Try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const clear = async () => {
     clearImportedCookies(platform.cookieKey);
+    clearSavedCookieSession(platform.cookieKey);
     setNote('Cookies cleared.');
   };
 
@@ -101,7 +128,11 @@ function PlatformModal({ platform, onClose }: { platform: SitePlatform; onClose:
                 thirdPartyCookiesEnabled
                 sharedCookiesEnabled
               />
-              <GhostButton label="Done — export my cookies" onPress={() => setShowLogin(false)} />
+              <PrimaryButton
+                label="Done — save my cookies"
+                onPress={() => void saveSession()}
+                loading={busy}
+              />
             </View>
           ) : (
             <>
@@ -109,7 +140,11 @@ function PlatformModal({ platform, onClose }: { platform: SitePlatform; onClose:
                 <Text style={styles.dim}>
                   {imported
                     ? `Imported cookies.txt (${formatDate(Math.floor(imported.importedAt / 1000))})${note ? ` — ${note}` : ''}`
-                    : 'No cookies yet.'}
+                    : savedSession
+                      ? `Saved session (${formatDate(Math.floor(savedSession.savedAt / 1000))})${note ? ` — ${note}` : ''}`
+                      : note
+                        ? note
+                        : 'No cookies yet.'}
                 </Text>
                 <Row style={styles.actions}>
                   <GhostButton
@@ -125,13 +160,13 @@ function PlatformModal({ platform, onClose }: { platform: SitePlatform; onClose:
                     style={styles.actionBtn}
                   />
                 </Row>
-                {imported && (
+                {(imported || savedSession) && (
                   <GhostButton label="Clear cookies" onPress={clear} style={styles.clearBtn} />
                 )}
               </Card>
-              {!imported && (
+              {!imported && !savedSession && (
                 <Text style={styles.dim}>
-                  Tip: after logging in, tap "Done — export my cookies" and downloads will
+                  Tip: after logging in, tap "Done — save my cookies" and downloads will
                   automatically use your session.
                 </Text>
               )}

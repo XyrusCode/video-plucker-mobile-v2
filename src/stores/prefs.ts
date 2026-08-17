@@ -16,6 +16,8 @@ interface PrefsState {
   lastQuality: Record<string, QualityId>;
   /** Imported cookies.txt files per platform cookie key: absolute path + when imported. */
   importedCookies: Record<string, { path: string; importedAt: number }>;
+  /** WebView-login sessions exported from the Cookie Manager, per platform cookie key. */
+  savedCookieSessions: Record<string, { path: string; savedAt: number }>;
   /** True once the initial engine boot (Python + yt-dlp self-update) has been triggered. */
   engineBooted: boolean;
 
@@ -25,6 +27,8 @@ interface PrefsState {
   rememberQuality: (platformKey: string, quality: QualityId) => void;
   setImportedCookies: (platformKey: string, path: string) => void;
   clearImportedCookies: (platformKey: string) => void;
+  setSavedCookieSession: (platformKey: string, path: string) => void;
+  clearSavedCookieSession: (platformKey: string) => void;
   markEngineBooted: () => void;
 }
 
@@ -36,6 +40,7 @@ export const usePrefs = create<PrefsState>()(
       dismissedUris: [],
       lastQuality: {},
       importedCookies: {},
+      savedCookieSessions: {},
       engineBooted: false,
 
       acceptTerms: () => set({ acceptedTerms: true }),
@@ -58,10 +63,22 @@ export const usePrefs = create<PrefsState>()(
           const { [platformKey]: _, ...rest } = s.importedCookies;
           return { importedCookies: rest };
         }),
+      setSavedCookieSession: (platformKey, path) =>
+        set((s) => ({
+          savedCookieSessions: {
+            ...s.savedCookieSessions,
+            [platformKey]: { path, savedAt: Date.now() },
+          },
+        })),
+      clearSavedCookieSession: (platformKey) =>
+        set((s) => {
+          const { [platformKey]: _, ...rest } = s.savedCookieSessions;
+          return { savedCookieSessions: rest };
+        }),
       markEngineBooted: () => set({ engineBooted: true }),
     }),
     {
-      name: 'ytplucker.v2.prefs',
+      name: 'ytplucker.prefs',
       storage: createJSONStorage(() => AsyncStorage),
       version: TERMS_VERSION,
       migrate: (persisted) => persisted as PrefsState,

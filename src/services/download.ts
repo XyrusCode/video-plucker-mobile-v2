@@ -6,7 +6,13 @@ import { resolveCookiesFile } from '../lib/cookies';
 
 /** Fetch metadata for a URL (yt-dlp getInfo). Throws with the engine's message on failure. */
 export async function probeUrl(url: string): Promise<ProbeResult> {
-  return YtPluckModule.probeAsync(url);
+  const res = (await YtPluckModule.probeAsync(url)) as
+    | (Partial<ProbeResult> & { ok?: boolean; error?: string })
+    | null;
+  if (!res || res.ok === false) {
+    throw new Error(res?.error ?? 'Analysis failed');
+  }
+  return res as ProbeResult;
 }
 
 /**

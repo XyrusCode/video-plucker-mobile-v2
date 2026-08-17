@@ -11,6 +11,7 @@
  */
 const {
   withAndroidManifest,
+  withAppBuildGradle,
   withDangerousMod,
   AndroidConfig,
 } = require('expo/config-plugins');
@@ -20,12 +21,37 @@ const path = require('path');
 const LEANBACK = 'android.software.leanback';
 const TOUCHSCREEN = 'android.hardware.touchscreen';
 
+// The F-Droid build must ship unsigned (F-Droid signs with their own key) and without Google
+// services; the env var is set by scripts/build-fdroid.mjs.
+const IS_FDROID = process.env.EXPO_PUBLIC_STORE === 'fdroid';
+
 const GRADLE_BLOCK = `
 // Added by withYtPluckAndroid (Video Plucker V2)
 android {
   packaging {
     jniLibs {
       useLegacyPackaging = true
+    }
+  }
+}
+`;
+
+// Shared release key, straight from the original Android app (keystore/ytplucker.jks). Keeping
+// the same key + package id lets 4.12 install directly over the original 4.11 builds.
+const SIGNING_BLOCK = `
+// Added by withYtPluckAndroid (release signing)
+android {
+  signingConfigs {
+    release {
+      storeFile rootProject.file('keystore/ytplucker.jks')
+      storePassword 'ytplucker'
+      keyAlias 'ytplucker'
+      keyPassword 'ytplucker'
+    }
+  }
+  buildTypes {
+    release {
+      signingConfig signingConfigs.release
     }
   }
 }
@@ -97,8 +123,40 @@ function withGradleMods(config) {
   ]);
 }
 
+/**
+ * Copy the committed release keystore into the generated project (android/keystore/) and sign
+ * release builds with it, replacing the template's debug-key signing. Skipped for F-Droid.
+ */
+function withReleaseSigning(config) {
+  if (IS_FDROID) return config;
+
+  config = withDangerousMod(config, [
+    'android',
+    async (config) => {
+      const src = path.join(config.modRequest.projectRoot, 'keystore', 'ytplucker.jks');
+      const destDir = path.join(config.modRequest.platformProjectRoot, 'keystore');
+      const dest = path.join(destDir, 'ytplucker.jks');
+      if (fs.existsSync(src) && !fs.existsSync(dest)) {
+        fs.mkdirSync(destDir, { recursive: true });
+        fs.copyFileSync(src, dest);
+      }
+      return config;
+    },
+  ]);
+
+  return withAppBuildGradle(config, (config) => {
+    const contents = config.modResults.contents;
+    if (contents.includes('withYtPluckAndroid (release signing)')) return config;
+    return {
+      ...config,
+      modResults: { ...config.modResults, contents: contents + SIGNING_BLOCK },
+    };
+  });
+}
+
 module.exports = function withYtPluckAndroid(config) {
   config = withManifestMods(config);
   config = withGradleMods(config);
+  config = withReleaseSigning(config);
   return config;
 };

@@ -53,6 +53,22 @@ jobs:
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk dist/app-universal-release.apk
 
+      - name: Upload Sentry source maps
+        if: env.SENTRY_AUTH_TOKEN != ''
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: xyrus-code
+          SENTRY_PROJECT: video-plucker
+        run: |
+          RELEASE="${GITHUB_REF_NAME#v}"
+          npx --yes @sentry/cli@latest releases new "$RELEASE" --finalize false
+          npx --yes @sentry/cli@latest releases set-commits "$RELEASE" --auto
+          npx --yes @sentry/cli@latest releases files "$RELEASE" upload-sourcemaps \
+            android/app/build/generated/assets/createBundleReleaseJsAndAssets \
+            android/app/build/generated/sourcemaps/react/release --ext map
+          npx --yes @sentry/cli@latest releases finalize "$RELEASE"
+
       - name: Extract release notes
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
@@ -77,5 +93,5 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile-v2/v${GITHUB_REF_NAME#v}/app-universal-release.apk" --file dist/app-universal-release.apk --remote
+          npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile/v${GITHUB_REF_NAME#v}/app-universal-release.apk" --file dist/app-universal-release.apk --remote
         continue-on-error: true

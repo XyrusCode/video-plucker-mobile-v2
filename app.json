@@ -1,19 +1,19 @@
 {
   "expo": {
-    "name": "Video Plucker V2",
+    "name": "Video Plucker",
     "slug": "video-plucker-mobile-v2",
-    "version": "2.0.0",
+    "version": "4.12.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0F1115",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.xyruscode.ytplucker.v2"
+      "bundleIdentifier": "xyrus.code.ytplucker"
     },
     "android": {
-      "package": "com.xyruscode.ytplucker.v2",
-      "versionCode": 1,
+      "package": "xyrus.code.ytplucker",
+      "versionCode": 28,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#0F1115",

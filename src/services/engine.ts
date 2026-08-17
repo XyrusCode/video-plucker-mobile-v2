@@ -2,17 +2,16 @@
 // yt-dlp in the background (V1's updateYoutubeDL-on-first-launch behavior).
 
 import YtPluckModule from 'yt-pluck';
-import { getFlag } from './remoteConfig';
 import { usePrefs } from '../stores/prefs';
 
 export async function bootEngine(): Promise<boolean> {
   const prefs = usePrefs.getState();
   if (prefs.engineBooted) return true;
   const ok = await YtPluckModule.initEngineAsync();
-  if (ok && getFlag('engine_update_enabled')) {
-    // initEngineAsync already triggers a background update; a foreground update is only
-    // exposed via Settings → "Update downloader".
+  if (ok) {
+    // initEngineAsync already triggers a background yt-dlp update.
+    usePrefs.getState().markEngineBooted();
   }
-  usePrefs.getState().markEngineBooted();
+  // On failure, do NOT mark booted — the next launch retries. Probes also self-heal natively.
   return ok;
 }

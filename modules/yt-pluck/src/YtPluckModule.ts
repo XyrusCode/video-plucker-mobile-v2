@@ -14,7 +14,9 @@ declare class YtPluckNativeModule extends NativeModule<{
 }> {
   initEngineAsync(): Promise<boolean>;
   updateEngineAsync(): Promise<boolean>;
-  probeAsync(url: string): Promise<ProbeResult>;
+  probeAsync(url: string): Promise<
+    ProbeResult & { ok?: boolean; error?: string }
+  >;
   startDownloadAsync(
     url: string,
     qualityId: QualityId,
@@ -24,7 +26,11 @@ declare class YtPluckNativeModule extends NativeModule<{
   resumeDownloadAsync(jobId: string): void;
   cancelDownloadAsync(jobId: string): void;
   getCookiesAsync(url: string): string | null;
-  saveCookiesFileAsync(key: string, cookieLines: string): Promise<string | null>;
+  saveCookiesFileAsync(
+    key: string,
+    cookieLines: string,
+    kind: 'session' | 'imported' | 'temp'
+  ): Promise<string | null>;
   queryHistoryAsync(): Promise<DownloadedFile[]>;
   getInitialSharedUrl(): string | null;
 }

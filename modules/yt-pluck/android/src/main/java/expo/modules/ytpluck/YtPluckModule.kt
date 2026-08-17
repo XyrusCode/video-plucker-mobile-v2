@@ -48,9 +48,11 @@ class YtPluckModule : Module() {
       runBlocking { EngineManager.updateEngine(context) }
     }
 
-    /** Fetch metadata only. Rejects with the yt-dlp error message on failure. */
+    /** Fetch metadata only. Returns {ok, ...} — failures carry a readable `error` message. */
     AsyncFunction("probeAsync") { url: String ->
-      runBlocking { EngineManager.probe(url) }
+      val context = appContext.reactContext ?: return@AsyncFunction
+        mapOf("ok" to false, "error" to "Engine not available")
+      runBlocking { EngineManager.probe(context, url) }
     }
 
     // --- Downloads ----------------------------------------------------------------------
@@ -85,13 +87,21 @@ class YtPluckModule : Module() {
     }
 
     /**
-     * Persist [cookieLines] (already Netscape-format) under cache/cookies/<key>.txt and
-     * return its absolute path — the real path yt-dlp needs, not a content:// URI.
+     * Persist [cookieLines] (already Netscape-format) and return the absolute path — the real
+     * path yt-dlp needs, not a content:// URI. `kind` picks the location:
+     *  - "session" / "imported" → filesDir (durable, survives cache clears)
+     *  - anything else ("temp") → cacheDir (deleted by DownloadService after the run)
      */
-    AsyncFunction("saveCookiesFileAsync") { key: String, cookieLines: String ->
+    AsyncFunction("saveCookiesFileAsync") { key: String, cookieLines: String, kind: String ->
       val context = appContext.reactContext ?: return@AsyncFunction null
-      val dir = File(context.cacheDir, "cookies").apply { mkdirs() }
-      val file = File(dir, "$key.txt")
+      val base = if (kind == "temp") context.cacheDir else context.filesDir
+      val dir = File(base, "cookies").apply { mkdirs() }
+      val name = when (kind) {
+        "session" -> "session_$key.txt"
+        "imported" -> "imported_$key.txt"
+        else -> "$key.txt"
+      }
+      val file = File(dir, name)
       runCatching {
         file.writeText(cookieLines)
         file.absolutePath

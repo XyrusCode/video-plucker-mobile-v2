@@ -5,7 +5,7 @@ import * as Application from 'expo-application';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 
-const REPO = 'XyrusCode/video-plucker-mobile-v2';
+const REPO = 'XyrusCode/video-plucker';
 
 export interface UpdateInfo {
   latestVersion: string;
@@ -52,7 +52,7 @@ export async function downloadUpdate(
 ): Promise<File> {
   const dir = new Directory(Paths.cache, 'updates');
   dir.create({ intermediates: true, idempotent: true });
-  const target = new File(dir, 'video-plucker-v2.apk');
+  const target = new File(dir, 'video-plucker.apk');
   if (target.exists) target.delete();
   const file = await File.downloadFileAsync(url, target, {
     onProgress: (e) => {

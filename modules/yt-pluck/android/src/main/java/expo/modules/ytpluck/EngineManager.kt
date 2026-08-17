@@ -20,6 +20,11 @@ object EngineManager {
   @Volatile
   private var initialized = false
 
+  /** Bounds the per-session self-heal: only the first probe failure of a session triggers a
+   * yt-dlp update + retry (unless the error is a known-stale signature, which always does). */
+  @Volatile
+  private var selfHealedThisSession = false
+
   /** Init the bundled Python/yt-dlp/ffmpeg payloads once. Best-effort; never throws. */
   suspend fun init(context: Context): Boolean = withContext(Dispatchers.IO) {
     if (initialized) return@withContext true
@@ -38,13 +43,19 @@ object EngineManager {
 
   /**
    * Fetch metadata only (yt-dlp `-J`). Never throws: failures return a `{ok=false, error}`
-   * map with a readable message so the JS layer never sees a bare "call to function
-   * `YTPluck.probeAsync` rejected" rejection.
+   * map with a readable message so the JS layer never sees a bare rejection.
    *
    * Self-heals like downloads: ensures the engine is initialized first, normalizes the URL
-   * for the engine, and on a stale-engine signature updates yt-dlp and retries once.
+   * for the engine, and on a stale-engine signature (or the first probe failure of the
+   * session) updates yt-dlp and retries once. Probes use the same request options as
+   * downloads (no-config, no-playlist, platform cookies, TikTok web-fallback) so analysis
+   * sees exactly what the download would see.
    */
-  suspend fun probe(context: Context, url: String): Map<String, Any?> = withContext(Dispatchers.IO) {
+  suspend fun probe(
+    context: Context,
+    url: String,
+    cookiesPath: String?,
+  ): Map<String, Any?> = withContext(Dispatchers.IO) {
     val failure = { msg: String ->
       mapOf("ok" to false, "error" to msg)
     }
@@ -55,33 +66,52 @@ object EngineManager {
       )
     }
     val target = normalizeForEngine(url)
-    var result = runCatching { YoutubeDL.getInfo(target) }
+    val request = YoutubeDLRequest(target).apply {
+      addOption("--no-config")
+      addOption("--no-playlist")
+      if (cookiesPath != null) {
+        addOption("--cookies", cookiesPath)
+      }
+      // TikTok impersonator workaround: prefer the web extraction path. For photo/slideshow
+      // posts, additionally declare the media type so the image pipeline is selected.
+      if (target.contains("tiktok.com", ignoreCase = true)) {
+        if (isTikTokPhotoUrl(target)) {
+          addOption("--extractor-args", "tiktok:web_fallback=true;media_type=image")
+        } else {
+          addOption("--extractor-args", "tiktok:web_fallback=true")
+        }
+      }
+    }
+    var result = runCatching { YoutubeDL.getInfo(request) }
     if (result.isFailure) {
       val msg = result.exceptionOrNull()!!.message?.takeIf { it.isNotBlank() }
         ?: "Analysis failed. Update the downloader in Settings and try again."
-      if (isStaleEngineError(msg) && updateEngine(context)) {
-        result = runCatching { YoutubeDL.getInfo(target) }
+      if ((isStaleEngineError(msg) || !selfHealedThisSession) && updateEngine(context)) {
+        selfHealedThisSession = true
+        result = runCatching { YoutubeDL.getInfo(request) }
       }
       if (result.isFailure) {
         val retryMsg = result.exceptionOrNull()!!.message?.takeIf { it.isNotBlank() } ?: msg
         return@withContext failure(retryMsg)
       }
     }
-    val info = result.getOrThrow()
-    val heights = info.formats
-      ?.mapNotNull { it.height.takeIf { h -> h > 0 } }
-      ?.distinct()
-      ?.sorted()
-      ?: emptyList()
-    mapOf(
-      "ok" to true,
-      "title" to (info.title ?: url),
-      "thumbnailUrl" to info.thumbnail,
-      "durationSeconds" to (info.duration.takeIf { it > 0 } ?: -1),
-      "uploader" to info.uploader,
-      "source" to (info.extractorKey?.takeIf { it.isNotBlank() } ?: info.extractor),
-      "availableHeights" to heights,
-    )
+    runCatching {
+      val info = result.getOrThrow()
+      val heights = info.formats
+        ?.mapNotNull { it.height.takeIf { h -> h > 0 } }
+        ?.distinct()
+        ?.sorted()
+        ?: emptyList()
+      mapOf(
+        "ok" to true,
+        "title" to (info.title ?: url),
+        "thumbnailUrl" to info.thumbnail,
+        "durationSeconds" to (info.duration.takeIf { it > 0 } ?: -1),
+        "uploader" to info.uploader,
+        "source" to (info.extractorKey?.takeIf { it.isNotBlank() } ?: info.extractor),
+        "availableHeights" to heights,
+      )
+    }.getOrElse { failure("Analysis failed: ${it.message ?: it::class.simpleName ?: "unknown"}") }
   }
 
   /**

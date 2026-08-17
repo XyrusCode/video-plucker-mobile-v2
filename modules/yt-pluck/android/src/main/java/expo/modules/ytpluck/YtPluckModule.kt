@@ -49,10 +49,10 @@ class YtPluckModule : Module() {
     }
 
     /** Fetch metadata only. Returns {ok, ...} — failures carry a readable `error` message. */
-    AsyncFunction("probeAsync") { url: String ->
+    AsyncFunction("probeAsync") { url: String, cookiesPath: String? ->
       val context = appContext.reactContext ?: return@AsyncFunction
         mapOf("ok" to false, "error" to "Engine not available")
-      runBlocking { EngineManager.probe(context, url) }
+      runBlocking { EngineManager.probe(context, url, cookiesPath) }
     }
 
     // --- Downloads ----------------------------------------------------------------------

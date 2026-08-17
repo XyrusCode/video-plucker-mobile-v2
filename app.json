@@ -2,7 +2,7 @@
   "expo": {
     "name": "Video Plucker",
     "slug": "video-plucker-mobile-v2",
-    "version": "4.12.0",
+    "version": "5.0.0-beta",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "xyrus.code.ytplucker",
-      "versionCode": 28,
+      "versionCode": 29,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#0F1115",

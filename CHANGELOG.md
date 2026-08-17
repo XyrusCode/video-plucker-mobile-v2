@@ -2,6 +2,21 @@
 
 All notable changes to Video Plucker (Android) are documented in this file.
 
+## [5.0.0-beta] - 2026-08-17
+
+### Fixed
+
+- **Analyze failed for TikTok and X/Twitter links** — probes now pass the platform's cookies and TikTok's web-fallback extractor args exactly like downloads do, force a yt-dlp update + retry on the first probe failure of a session (not just known-stale signatures), wait for the update at boot, and surface the real engine error with full detail in reports instead of a bare "Analysis failed".
+- **Share sheet / deep links opened the Browser tab** — a shared URL now lands on the Download tab with the link pre-filled and analyzed.
+
+### Added
+
+- Settings toggle to turn the built-in browser tab on/off (it stays first-class, but optional).
+
+### Changed
+
+- Version 5.0.0-beta (version code 29): first release of the 5.x line.
+
 ## [4.12.0] - 2026-08-17
 
 ### Changed

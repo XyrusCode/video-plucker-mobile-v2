@@ -522,7 +522,7 @@ private fun isLoginRequiredError(message: String): Boolean {
 fun reportIssueUrl(p: JobProgress, appVersion: String): String {
   val title = "Download failed: ${p.title.take(80)}"
   val body = buildString {
-    appendLine("**App:** Video Plucker 4.12.0 $appVersion")
+    appendLine("**App:** Video Plucker $appVersion")
     appendLine("**Progress:** ${p.percent.toInt()}%")
     appendLine("**Title:** ${p.title}")
     appendLine("**URL:** ${p.url}")

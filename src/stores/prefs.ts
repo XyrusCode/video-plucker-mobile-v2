@@ -20,6 +20,8 @@ interface PrefsState {
   savedCookieSessions: Record<string, { path: string; savedAt: number }>;
   /** True once the initial engine boot (Python + yt-dlp self-update) has been triggered. */
   engineBooted: boolean;
+  /** Built-in browser tab on/off (first-class feature, but optional). */
+  browserEnabled: boolean;
 
   acceptTerms: () => void;
   finishWalkthrough: () => void;
@@ -30,6 +32,7 @@ interface PrefsState {
   setSavedCookieSession: (platformKey: string, path: string) => void;
   clearSavedCookieSession: (platformKey: string) => void;
   markEngineBooted: () => void;
+  setBrowserEnabled: (enabled: boolean) => void;
 }
 
 export const usePrefs = create<PrefsState>()(
@@ -42,6 +45,7 @@ export const usePrefs = create<PrefsState>()(
       importedCookies: {},
       savedCookieSessions: {},
       engineBooted: false,
+      browserEnabled: true,
 
       acceptTerms: () => set({ acceptedTerms: true }),
       finishWalkthrough: () => set({ walkthroughDone: true }),
@@ -76,6 +80,7 @@ export const usePrefs = create<PrefsState>()(
           return { savedCookieSessions: rest };
         }),
       markEngineBooted: () => set({ engineBooted: true }),
+      setBrowserEnabled: (enabled) => set({ browserEnabled: enabled }),
     }),
     {
       name: 'ytplucker.prefs',

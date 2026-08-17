@@ -37,7 +37,6 @@ function DownloadTab() {
     <DownloadScreen
       onGoToQueue={() => {
         navigation.navigate('Queue');
-        useSharedUrl.getState().setSharedUrl(null);
       }}
     />
   );
@@ -48,7 +47,18 @@ function SettingsTab() {
   return <SettingsScreen onOpenCookies={() => navigation.navigate('Cookies')} />;
 }
 
+/** A shared URL (share sheet / deep link / browser Pluck) always lands on the Download tab. */
+function SharedUrlTabSwitcher() {
+  const navigation = useNavigation<TabNav>();
+  const nonce = useSharedUrl((s) => s.nonce);
+  React.useEffect(() => {
+    if (nonce > 0) navigation.navigate('Download');
+  }, [nonce, navigation]);
+  return null;
+}
+
 function MainTabs() {
+  const browserEnabled = usePrefs((s) => s.browserEnabled);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -61,7 +71,8 @@ function MainTabs() {
         ),
       })}
     >
-      <Tab.Screen name="Browser" component={BrowserScreen} />
+      <SharedUrlTabSwitcher />
+      {browserEnabled && <Tab.Screen name="Browser" component={BrowserScreen} />}
       <Tab.Screen name="Download" component={DownloadTab} />
       <Tab.Screen name="Queue" component={QueueScreen} />
       <Tab.Screen name="History" component={HistoryScreen} />

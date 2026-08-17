@@ -33,6 +33,7 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
   const [phase, setPhase] = React.useState<Phase>('idle');
   const [starting, setStarting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [detail, setDetail] = React.useState<string | null>(null);
   const [probe, setProbe] = React.useState<ProbeResult | null>(null);
   const [quality, setQuality] = React.useState<QualityId>('best');
   const [lastAnalyzedUrl, setLastAnalyzedUrl] = React.useState('');
@@ -59,6 +60,7 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
     Keyboard.dismiss();
     setPhase('analyzing');
     setError(null);
+    setDetail(null);
     setLastAnalyzedUrl(target);
     try {
       const result = await probeUrl(target);
@@ -68,7 +70,8 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
       if (remembered) setQuality(remembered);
       setPhase('ready');
     } catch (e) {
-      setError(cleanEngineError(e instanceof Error ? e.message : 'Analysis failed', target));
+      setDetail(describeError(e));
+      setError(cleanEngineError(e, target));
       setProbe(null);
       setPhase('error');
     }
@@ -120,6 +123,7 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
               setInput('');
               setPhase('idle');
               setError(null);
+              setDetail(null);
             }}
             style={styles.clearBtn}
             disabled={!input}
@@ -149,12 +153,15 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
                 openIssue({
                   title: `Analysis failed: ${lastAnalyzedUrl.slice(0, 80)}`,
                   body: [
-                    `**App:** Video Plucker ${Application.nativeApplicationVersion ?? '4.12.0'}`,
+                    `**App:** Video Plucker ${Application.nativeApplicationVersion ?? 'unknown'}`,
                     `**URL:** ${lastAnalyzedUrl}`,
                     '**Error:**',
                     '```',
                     error ?? '',
                     '```',
+                    ...(detail
+                      ? ['**Detail:**', '```', detail, '```']
+                      : []),
                   ].join('\n'),
                 })
               }
@@ -209,19 +216,44 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
         )}
 
         {phase === 'idle' && (
-          <EmptyState icon="⌄" text="Paste a link, or pluck one from the browser tab" />
+          <EmptyState icon="⌄" text="Paste a link, or share one into Video Plucker" />
         )}
       </SafeAreaView>
     </Screen>
   );
 }
 
-function cleanEngineError(msg: string, url: string): string {
+function cleanEngineError(e: unknown, url: string): string {
+  const raw =
+    e instanceof Error
+      ? (e.message ?? String(e))
+      : typeof e === 'string'
+        ? e
+        : e
+          ? safeStringify(e)
+          : '';
+  const msg = raw.trim() || 'Analysis failed';
   const lower = msg.toLowerCase();
   if (lower.includes('unsupported url') && url.includes('tiktok.com')) {
     return "That link is a TikTok photo/slideshow post or a short link that couldn't be resolved. Copy the share link from the app, or use Image quality on a /photo/ URL.";
   }
   return msg;
+}
+
+/** Full detail (message + stack) for the report body; falls back to a stringified value. */
+function describeError(e: unknown): string {
+  if (e instanceof Error) {
+    return [e.message, e.stack].filter(Boolean).join('\n');
+  }
+  return typeof e === 'string' ? e : safeStringify(e);
+}
+
+function safeStringify(e: unknown): string {
+  try {
+    return JSON.stringify(e) ?? String(e);
+  } catch {
+    return String(e);
+  }
 }
 
 const styles = StyleSheet.create({

@@ -2,7 +2,7 @@
 
 import * as Application from 'expo-application';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, GhostButton, PrimaryButton, ProgressBar, Row, Screen, SectionTitle } from '../components/ui';
@@ -34,7 +34,9 @@ export default function SettingsScreen({
   const [updatingEngine, setUpdatingEngine] = React.useState(false);
   const [engineNote, setEngineNote] = React.useState<string | null>(null);
   const engineBooted = usePrefs((s) => s.engineBooted);
-  const version = Application.nativeApplicationVersion ?? '4.12.0';
+  const browserEnabled = usePrefs((s) => s.browserEnabled);
+  const setBrowserEnabled = usePrefs((s) => s.setBrowserEnabled);
+  const version = Application.nativeApplicationVersion ?? 'unknown';
   // Store builds (F-Droid) manage updates themselves; GitHub-release self-updates are for the
   // direct/GitHub build only.
   const updatesEnabled =
@@ -106,6 +108,21 @@ export default function SettingsScreen({
             </Row>
             {engineNote && <Text style={styles.dim}>{engineNote}</Text>}
           </Pressable>
+        </Card>
+
+        <SectionTitle>Browser</SectionTitle>
+        <Card style={styles.card}>
+          <Row style={styles.row}>
+            <Ionicons name="globe" size={18} color={colors.textDim} />
+            <Text style={styles.rowLabel}>Built-in browser</Text>
+            <Switch
+              value={browserEnabled}
+              onValueChange={setBrowserEnabled}
+              trackColor={{ false: colors.panel2, true: colors.accentDim }}
+              thumbColor={browserEnabled ? colors.accent : colors.textDim}
+            />
+          </Row>
+          <Text style={styles.dim}>Show the browser tab for browsing and plucking videos</Text>
         </Card>
 
         <SectionTitle>Updates</SectionTitle>

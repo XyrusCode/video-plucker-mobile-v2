@@ -9,7 +9,13 @@ export async function bootEngine(): Promise<boolean> {
   if (prefs.engineBooted) return true;
   const ok = await YtPluckModule.initEngineAsync();
   if (ok) {
-    // initEngineAsync already triggers a background yt-dlp update.
+    // Wait (bounded) for the yt-dlp self-update so the FIRST analyze uses the latest binary —
+    // the bundled one goes stale fast against TikTok/X. The native side keeps running even if
+    // the timeout gives up; probes also self-heal on failure.
+    await Promise.race([
+      YtPluckModule.updateEngineAsync(),
+      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 20000)),
+    ]);
     usePrefs.getState().markEngineBooted();
   }
   // On failure, do NOT mark booted — the next launch retries. Probes also self-heal natively.

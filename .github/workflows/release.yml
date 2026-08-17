@@ -87,6 +87,7 @@ jobs:
           files: dist/*.apk
           body_path: release-notes.md
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
 
       - name: Mirror to Cloudflare R2
         env:

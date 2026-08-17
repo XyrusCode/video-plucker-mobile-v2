@@ -14,9 +14,10 @@ declare class YtPluckNativeModule extends NativeModule<{
 }> {
   initEngineAsync(): Promise<boolean>;
   updateEngineAsync(): Promise<boolean>;
-  probeAsync(url: string): Promise<
-    ProbeResult & { ok?: boolean; error?: string }
-  >;
+  probeAsync(
+    url: string,
+    cookiesPath: string | null
+  ): Promise<ProbeResult & { ok?: boolean; error?: string }>;
   startDownloadAsync(
     url: string,
     qualityId: QualityId,

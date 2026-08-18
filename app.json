@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Video Plucker",
-    "slug": "video-plucker-mobile-v2",
+    "slug": "video-plucker",
     "version": "5.0.0-beta",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -39,6 +39,12 @@
     "plugins": [
       "@react-native-firebase/app",
       "./plugins/withYtPluckAndroid"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "22cffe7f-0a83-4244-81c8-90234734f500"
+      }
+    },
+    "owner": "xyrus"
   }
 }

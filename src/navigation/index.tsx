@@ -3,7 +3,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator, type BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator, type NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
+import { createNavigationContainerRef, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import BrowserScreen from '../screens/BrowserScreen';
 import CookiesScreen from '../screens/CookiesScreen';
@@ -14,11 +14,13 @@ import SettingsScreen from '../screens/SettingsScreen';
 import TermsScreen from '../screens/TermsScreen';
 import WalkthroughScreen from '../screens/WalkthroughScreen';
 import { usePrefs } from '../stores/prefs';
-import { useSharedUrl } from '../stores/sharedUrl';
 import { colors } from '../theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+/** Lets App.tsx route shared/deep-link URLs to the Download tab from outside the tree. */
+export const navigationRef = createNavigationContainerRef<Record<string, object | undefined>>();
 
 type TabNav = BottomTabNavigationProp<Record<string, undefined>>;
 type StackNav = NativeStackNavigationProp<Record<string, undefined>>;
@@ -47,16 +49,6 @@ function SettingsTab() {
   return <SettingsScreen onOpenCookies={() => navigation.navigate('Cookies')} />;
 }
 
-/** A shared URL (share sheet / deep link / browser Pluck) always lands on the Download tab. */
-function SharedUrlTabSwitcher() {
-  const navigation = useNavigation<TabNav>();
-  const nonce = useSharedUrl((s) => s.nonce);
-  React.useEffect(() => {
-    if (nonce > 0) navigation.navigate('Download');
-  }, [nonce, navigation]);
-  return null;
-}
-
 function MainTabs() {
   const browserEnabled = usePrefs((s) => s.browserEnabled);
   return (
@@ -71,7 +63,6 @@ function MainTabs() {
         ),
       })}
     >
-      <SharedUrlTabSwitcher />
       {browserEnabled && <Tab.Screen name="Browser" component={BrowserScreen} />}
       <Tab.Screen name="Download" component={DownloadTab} />
       <Tab.Screen name="Queue" component={QueueScreen} />

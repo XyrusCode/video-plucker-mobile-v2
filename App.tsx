@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { addSharedUrlListener } from 'yt-pluck';
-import RootNavigator from './src/navigation';
+import RootNavigator, { navigationRef } from './src/navigation';
 import { initRemoteConfig } from './src/services/remoteConfig';
 import { initSentry } from './src/services/sentry';
 import { bootEngine } from './src/services/engine';
@@ -13,6 +13,8 @@ import YtPluckModule from 'yt-pluck';
 
 export default function App() {
   const [ready, setReady] = React.useState(false);
+
+  const pendingTabNav = React.useRef(false);
 
   React.useEffect(() => {
     let mounted = true;
@@ -42,11 +44,33 @@ export default function App() {
     };
   }, []);
 
+  // A shared URL (share sheet / deep link / browser Pluck) always lands on the Download tab.
+  // Navigate from outside the tree — on first launch the navigator isn't mounted yet, so queue
+  // the navigation until the container signals ready.
+  React.useEffect(() => {
+    return useSharedUrl.subscribe((state, prev) => {
+      if (state.nonce === 0 || state.nonce === prev.nonce) return;
+      if (navigationRef.isReady()) {
+        navigationRef.navigate('Main', { screen: 'Download' });
+      } else {
+        pendingTabNav.current = true;
+      }
+    });
+  }, [pendingTabNav]);
+
   if (!ready) return null;
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={() => {
+          if (pendingTabNav.current) {
+            pendingTabNav.current = false;
+            navigationRef.navigate('Main', { screen: 'Download' });
+          }
+        }}
+      >
         <RootNavigator />
       </NavigationContainer>
       <StatusBar style="light" />

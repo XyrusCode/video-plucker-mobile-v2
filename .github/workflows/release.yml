@@ -48,7 +48,14 @@ jobs:
       - name: Collect APK
         run: |
           mkdir -p dist
-          cp reuse/android/app/build/outputs/apk/release/app-release.apk dist/app-universal-release.apk
+          APK=$(find reuse -type f -name 'app-release.apk' | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "::error::app-release.apk not found under reuse/"
+            find reuse -maxdepth 8 -type d | head -100
+            exit 1
+          fi
+          cp "$APK" dist/app-universal-release.apk
+          echo "Collected APK from: $APK"
 
       - name: Upload Sentry source maps
         if: env.SENTRY_AUTH_TOKEN != ''
@@ -59,11 +66,16 @@ jobs:
           SENTRY_PROJECT: video-plucker
         run: |
           RELEASE="${GITHUB_REF_NAME#v}"
+          JS_DIR=$(find reuse -type d -name createBundleReleaseJsAndAssets | head -n 1)
+          MAP_DIR=$(find reuse -type d -path '*sourcemaps/react/release' | head -n 1)
+          if [ -z "$JS_DIR" ] || [ -z "$MAP_DIR" ]; then
+            echo "Source maps not found under reuse/; skipping source map upload."
+            exit 0
+          fi
           npx --yes @sentry/cli@latest releases new "$RELEASE" --finalize false
           npx --yes @sentry/cli@latest releases set-commits "$RELEASE" --auto
           npx --yes @sentry/cli@latest releases files "$RELEASE" upload-sourcemaps \
-            reuse/android/app/build/generated/assets/createBundleReleaseJsAndAssets \
-            reuse/android/app/build/generated/sourcemaps/react/release --ext map
+            "$JS_DIR" "$MAP_DIR" --ext map
           npx --yes @sentry/cli@latest releases finalize "$RELEASE"
 
       - name: Extract release notes

@@ -2,17 +2,23 @@
 # The project moved here after GitHub Actions minutes ran out.
 #
 # Pipeline rules:
-#   - pushes to `main`  → debug-build (builds debug AND release APKs; fast feedback)
+#   - pushes to `main`  → debug-build + release-build in parallel. release-build exists so a
+#                         tag can ship without rebuilding (reuse, not rebuild).
 #   - pushes of tags `v*` → release only — NO rebuild. It reuses the signed release APK
-#                           from the last successful `main` debug-build.
+#                           from the last successful `main` release-build.
 #
 # Reuse flow:
-#   1. Push the release commit to `main` → debug-build runs; artifacts include the signed
-#      release APK + debug APK + Sentry source maps (expire 30 days).
-#   2. Once debug-build is green, push the `v*` tag → the release job downloads those
-#      artifacts from the last successful `main` pipeline, publishes (generic package +
-#      GitLab Release + R2 mirror), then purges the reused build artifacts. R2 and the
-#      package registry keep every released APK, so nothing else needs preserving.
+#   1. Push the release commit to `main` → debug-build and release-build run in parallel;
+#      release-build artifacts include the signed release APK + Sentry source maps.
+#   2. Once they are green, push the `v*` tag → the release job downloads those artifacts
+#      from the last successful `main` pipeline, publishes (generic package + GitLab
+#      Release + R2 mirror), then purges the reused build artifacts. R2 and the package
+#      registry keep every released APK, so nothing else needs preserving.
+#
+# Debug and release are SEPARATE jobs (not one job building both) so each runner only holds
+# one variant's C++/build outputs — a single job doing both blew the shared runner's disk
+# ("No space left on device"). The `.gradle` cache is trimmed to deps + wrapper only
+# (not full transforms/build-cache) to keep the build dir lean.
 #
 # Project CI/CD variables (Settings → CI/CD → Variables, masked where sensitive):
 #   GOOGLE_SERVICES_JSON      base64 of google-services.json (optional; committed placeholder used otherwise)
@@ -41,7 +47,8 @@ cache:
       - package-lock.json
   paths:
     - node_modules/
-    - .gradle/
+    - .gradle/wrapper/
+    - .gradle/caches/modules-2/
 
 # One-time per-job toolchain: JDK 17 + Android cmdline-tools with accepted licenses.
 # AGP downloads the exact platform/build-tools it needs once licenses are accepted.
@@ -67,11 +74,25 @@ debug-build:
     - if [ -n "$GOOGLE_SERVICES_JSON" ]; then echo "$GOOGLE_SERVICES_JSON" | base64 -d > google-services.json; fi
     - npx expo prebuild --platform android --no-install
     - echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
-    # Build the signed release APK here too so a tag release can proceed without rebuilding.
-    - cd android && ./gradlew assembleDebug assembleRelease --console=plain && cd ..
+    - cd android && ./gradlew assembleDebug --console=plain && cd ..
   artifacts:
     paths:
       - android/app/build/outputs/apk/debug/app-debug.apk
+    expire_in: 30 days
+
+release-build:
+  stage: build
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - npm ci
+    - if [ -n "$GOOGLE_SERVICES_JSON" ]; then echo "$GOOGLE_SERVICES_JSON" | base64 -d > google-services.json; fi
+    - npx expo prebuild --platform android --no-install
+    - echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+    # Signed release APK reused by the tag release job (no rebuild on tags).
+    - cd android && ./gradlew assembleRelease --console=plain && cd ..
+  artifacts:
+    paths:
       - android/app/build/outputs/apk/release/app-release.apk
       # Reused by the release job's Sentry upload; purged after a successful release.
       - android/app/build/generated/assets/createBundleReleaseJsAndAssets/
@@ -86,7 +107,7 @@ release:
     - apt-get update -qq > /dev/null 2>&1
     - apt-get install -y -qq unzip jq > /dev/null 2>&1
   script:
-    # 0) Reuse the signed release APK + source maps from the last successful main debug-build.
+    # 0) Reuse the signed release APK + source maps from the last successful main release-build.
     - |
       pipeline_id="$(curl -sS --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines?ref=main&sha=$CI_COMMIT_SHA&status=success&per_page=1" \
@@ -97,20 +118,20 @@ release:
           | jq -r '.[0].id // empty')"
       fi
       if [ -z "$pipeline_id" ]; then
-        echo "No successful main debug-build found to reuse. Push main first so debug-build goes green, then push the tag." >&2
+        echo "No successful main release-build found to reuse. Push main first so release-build goes green, then push the tag." >&2
         exit 1
       fi
       job_id="$(curl -sS --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$pipeline_id/jobs?scope[]=success" \
-        | jq -r '.[] | select(.name=="debug-build") | .id // empty')"
+        | jq -r '.[] | select(.name=="release-build") | .id // empty')"
       if [ -z "$job_id" ]; then
-        echo "debug-build job not found in pipeline $pipeline_id." >&2
+        echo "release-build job not found in pipeline $pipeline_id." >&2
         exit 1
       fi
-      echo "Reusing artifacts from debug-build job $job_id (pipeline $pipeline_id)."
-      curl -sS -L --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" -o debug-build-artifacts.zip \
+      echo "Reusing artifacts from release-build job $job_id (pipeline $pipeline_id)."
+      curl -sS -L --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" -o release-build-artifacts.zip \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/$job_id/artifacts"
-      unzip -qo debug-build-artifacts.zip
+      unzip -qo release-build-artifacts.zip
     - test -f android/app/build/outputs/apk/release/app-release.apk
     - mkdir -p dist && cp android/app/build/outputs/apk/release/app-release.apk dist/app-universal-release.apk
     - VERSION="${CI_COMMIT_TAG#v}"
@@ -135,7 +156,7 @@ release:
         npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile/$VERSION/app-universal-release.apk" --file dist/app-universal-release.apk --remote || true;
       fi
     # 5) Purge the reused build artifacts. R2 + package registry retain this release's APK,
-    #    so old debug APKs / source maps no longer need preserving.
+    #    so old debug/release APKs + source maps no longer need preserving.
     - |
       for pid in $(curl -sS --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines?ref=main&status=success&per_page=20" \

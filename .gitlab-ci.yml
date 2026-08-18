@@ -1,0 +1,100 @@
+# GitLab CI — mirrors the old GitHub Actions pipeline (Expo prebuild → Gradle → release).
+# The project moved here after GitHub Actions minutes ran out.
+#
+# Pipeline rules:
+#   - pushes to `main`            → debug build job (fast feedback)
+#   - pushes of tags `v*`         → release job (signed APK → generic package → GitLab Release)
+#
+# Project CI/CD variables (Settings → CI/CD → Variables, masked where sensitive):
+#   GOOGLE_SERVICES_JSON      base64 of google-services.json (optional; committed placeholder used otherwise)
+#   SENTRY_AUTH_TOKEN         for source-map uploads (optional)
+#   CLOUDFLARE_API_TOKEN      R2 mirror (optional)
+#   CLOUDFLARE_ACCOUNT_ID     R2 mirror (optional)
+
+image: node:22
+
+stages:
+  - build
+  - release
+
+variables:
+  ANDROID_SDK_ROOT: "/opt/android-sdk"
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v/'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+    - .gradle/
+
+# One-time per-job toolchain: JDK 17 + Android cmdline-tools with accepted licenses.
+# AGP downloads the exact platform/build-tools it needs once licenses are accepted.
+before_script:
+  - apt-get update -qq > /dev/null 2>&1
+  - apt-get install -y -qq openjdk-17-jdk-headless unzip > /dev/null 2>&1
+  - export JAVA_HOME="$(dirname $(dirname $(readlink -f $(which javac))))"
+  - if [ ! -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+      mkdir -p "$ANDROID_SDK_ROOT";
+      curl -sSLo /tmp/ct.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip;
+      unzip -q /tmp/ct.zip -d /tmp/ct;
+      mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools";
+      mv /tmp/ct/cmdline-tools "$ANDROID_SDK_ROOT/cmdline-tools/latest";
+      yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1;
+    fi
+
+debug-build:
+  stage: build
+  script:
+    - npm ci
+    - npx expo prebuild --platform android --no-install
+    - echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+    - cd android && ./gradlew assembleDebug
+  artifacts:
+    paths:
+      - android/app/build/outputs/apk/debug/app-debug.apk
+    expire_in: 7 days
+
+release:
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v/'
+  script:
+    - npm ci
+    - if [ -n "$GOOGLE_SERVICES_JSON" ]; then echo "$GOOGLE_SERVICES_JSON" | base64 -d > google-services.json; fi
+    - npx expo prebuild --platform android --no-install
+    - echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+    - cd android && ./gradlew assembleRelease
+    - mkdir -p ../dist && cp app/build/outputs/apk/release/app-release.apk ../dist/app-universal-release.apk && cd ..
+    - VERSION="${CI_COMMIT_TAG#v}"
+    # Extract this version's CHANGELOG section into release-notes.md (heading may carry a date suffix).
+    - awk -v v="$VERSION" '/^## \[/ { if (on) exit; if ($0 ~ "^## \\[" v "\\]") on=1 } on { print }' CHANGELOG.md > release-notes.md
+    # 1) Publish the APK to the generic package registry (public when the project is public).
+    - 'curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file dist/app-universal-release.apk "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/video-plucker/$VERSION/app-universal-release.apk"'
+    # 2) Create the GitLab Release pointing at the package.
+    - curl -sSLo /usr/local/bin/release-cli https://gitlab.com/gitlab-org/release-cli/-/releases/download/v0.19.0/release-cli-linux-amd64 && chmod +x /usr/local/bin/release-cli
+    - release-cli create --name "$CI_COMMIT_TAG" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_TAG" --description-file release-notes.md --assets-link --name "app-universal-release.apk" --url "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/video-plucker/$VERSION/app-universal-release.apk" --link-type "package"
+    # 3) Sentry source maps (optional; best-effort).
+    - if [ -n "$SENTRY_AUTH_TOKEN" ]; then
+        RELEASE="$VERSION";
+        export SENTRY_ORG=xyrus-code SENTRY_PROJECT=video-plucker;
+        npx --yes @sentry/cli@latest releases new "$RELEASE" --finalize false || true;
+        npx --yes @sentry/cli@latest releases set-commits "$RELEASE" --auto || true;
+        npx --yes @sentry/cli@latest releases files "$RELEASE" upload-sourcemaps android/app/build/generated/assets/createBundleReleaseJsAndAssets android/app/build/generated/sourcemaps/react/release --ext map || true;
+        npx --yes @sentry/cli@latest releases finalize "$RELEASE" || true;
+      fi
+    # 4) Mirror the APK to Cloudflare R2 (optional; best-effort).
+    - if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+        npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile/$VERSION/app-universal-release.apk" --file dist/app-universal-release.apk --remote || true;
+      fi
+  artifacts:
+    name: "$CI_COMMIT_TAG"
+    paths:
+      - dist/
+    expire_in: 30 days

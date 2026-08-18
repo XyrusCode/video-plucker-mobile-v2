@@ -1,11 +1,14 @@
 // Self-update checker — port of V1's UpdateChecker.kt. The JS layer owns the update flow
-// (GitHub API check → download → install), mirroring the app-foreground-only UX of V1.
+// (GitLab Releases API check → download → install), mirroring the app-foreground-only UX of V1.
 
 import * as Application from 'expo-application';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 
-const REPO = 'XyrusCode/video-plucker-mobile-v2';
+// Project must be public for unauthenticated in-app checks and APK downloads to work.
+const PROJECT_PATH = 'KyriosNyx/video-plucker-mobile-v2';
+const PROJECT_API_ID = encodeURIComponent(PROJECT_PATH);
+const GITLAB = 'https://gitlab.com';
 
 export interface UpdateInfo {
   latestVersion: string;
@@ -22,27 +25,35 @@ export interface UpdateProgress {
 }
 
 /**
- * Check GitHub for a newer release. Returns null when the installed version is current
+ * Check GitLab for a newer release. Returns null when the installed version is current
  * (or the check fails — a failed check is not a hard error, the UI shows "up to date").
  */
 export async function checkForUpdates(): Promise<UpdateInfo | null> {
   const current = Application.nativeApplicationVersion;
-  const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
-    headers: { Accept: 'application/vnd.github+json' },
-  });
+  const res = await fetch(
+    `${GITLAB}/api/v4/projects/${PROJECT_API_ID}/releases/permalink/latest`,
+    { headers: { Accept: 'application/json' } }
+  );
   if (!res.ok) return null;
   const release = await res.json();
   const tag = String(release.tag_name ?? '').replace(/^v/, '');
   if (!tag || !current || isVersionAtLeast(current, tag)) return null;
-  const asset = (release.assets ?? []).find(
-    (a: { name?: string }) =>
-      a.name === 'app-universal-release.apk' || /universal.*\.apk$/i.test(a.name ?? '')
+
+  const assetLink = (release.assets?.links ?? []).find(
+    (l: { name?: string; url?: string }) =>
+      l.name === 'app-universal-release.apk' ||
+      /universal.*\.apk$/i.test(l.name ?? '') ||
+      (l.url ?? '').includes('app-universal-release.apk')
   );
+  const downloadUrl =
+    assetLink?.direct_asset_url ??
+    assetLink?.url ??
+    `${GITLAB}/${PROJECT_PATH}/-/packages/generic/video-plucker/${tag}/app-universal-release.apk`;
   return {
     latestVersion: tag,
-    downloadUrl: asset?.browser_download_url ?? null,
-    notes: release.body ?? null,
-    sizeBytes: asset?.size ?? 0,
+    downloadUrl,
+    notes: release.description ?? null,
+    sizeBytes: 0,
   };
 }
 

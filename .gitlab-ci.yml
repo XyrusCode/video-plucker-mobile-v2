@@ -46,7 +46,7 @@ before_script:
       unzip -q /tmp/ct.zip -d /tmp/ct;
       mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools";
       mv /tmp/ct/cmdline-tools "$ANDROID_SDK_ROOT/cmdline-tools/latest";
-      yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1;
+      (yes || true) | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1;
     fi
 
 debug-build:

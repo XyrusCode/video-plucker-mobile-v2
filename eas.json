@@ -10,6 +10,14 @@
         "buildType": "apk",
         "credentialsSource": "local"
       }
+    },
+    "production": {
+      "distribution": "internal",
+      "channel": "production",
+      "android": {
+        "buildType": "apk",
+        "credentialsSource": "local"
+      }
     }
   },
   "submit": {

@@ -6,52 +6,49 @@ on:
       - 'v*'
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Materialize google-services.json
+      - name: Find last successful Android Build run on main
+        id: find-run
         env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
-            echo "$GOOGLE_SERVICES_JSON" | base64 -d > google-services.json
-          else
-            echo "GOOGLE_SERVICES_JSON secret not set — using committed placeholder (remote config defaults at runtime)."
+          RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/android-build.yml/runs?branch=main&head_sha=$GITHUB_SHA&status=success&per_page=1" --jq '.workflow_runs[0].id' 2>/dev/null || true)
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "No successful run at $GITHUB_SHA — falling back to latest successful android-build on main."
+            RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/android-build.yml/runs?branch=main&status=success&per_page=1" --jq '.workflow_runs[0].id' 2>/dev/null || true)
           fi
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "No successful Android Build run on main to reuse. Push main so the build goes green, then push the tag." >&2
+            exit 1
+          fi
+          echo "Reusing Android Build run $RUN_ID"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Generate native project
-        run: npx expo prebuild --platform android --no-install
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
+      - name: Download release APK + source maps
+        uses: actions/download-artifact@v8
         with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Build release APK
-        working-directory: android
-        run: |
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          ./gradlew assembleRelease
+          name: release-apk
+          path: reuse
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.find-run.outputs.run_id }}
 
       - name: Collect APK
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk dist/app-universal-release.apk
+          cp reuse/android/app/build/outputs/apk/release/app-release.apk dist/app-universal-release.apk
 
       - name: Upload Sentry source maps
         if: env.SENTRY_AUTH_TOKEN != ''
@@ -65,8 +62,8 @@ jobs:
           npx --yes @sentry/cli@latest releases new "$RELEASE" --finalize false
           npx --yes @sentry/cli@latest releases set-commits "$RELEASE" --auto
           npx --yes @sentry/cli@latest releases files "$RELEASE" upload-sourcemaps \
-            android/app/build/generated/assets/createBundleReleaseJsAndAssets \
-            android/app/build/generated/sourcemaps/react/release --ext map
+            reuse/android/app/build/generated/assets/createBundleReleaseJsAndAssets \
+            reuse/android/app/build/generated/sourcemaps/react/release --ext map
           npx --yes @sentry/cli@latest releases finalize "$RELEASE"
 
       - name: Extract release notes
@@ -96,3 +93,14 @@ jobs:
         run: |
           npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile/v${GITHUB_REF_NAME#v}/app-universal-release.apk" --file dist/app-universal-release.apk --remote
         continue-on-error: true
+
+      - name: Purge stale build artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The released APK lives on the GitHub Release and R2, so the per-build
+          # workflow artifacts (debug/release APKs + source maps) can be purged.
+          gh api "repos/${{ github.repository }}/actions/artifacts?per_page=100" --paginate \
+            --jq '.artifacts[] | .id' | while read -r id; do
+            gh api --method DELETE "repos/${{ github.repository }}/actions/artifacts/$id" >/dev/null 2>&1 || true
+          done

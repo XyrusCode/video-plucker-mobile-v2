@@ -4,11 +4,14 @@ Thanks for helping! Everything lives on GitLab: https://gitlab.com/XyrusCode/vid
 
 ## Reporting bugs
 
-Open an issue at https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues and include:
+All in-app error/crash reporting goes to Sentry (org `xyrus-code`, project `video-plucker`)
+— analysis failures, download failures, and "Report an issue" presses are captured there
+automatically. For anything Sentry can't capture, open a GitLab issue at
+https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues and include:
 
 1. **App version** (Settings → About) and Android version/device.
 2. **The exact URL** that failed.
-3. **The full error text** — tap Report on the error screen; it pre-fills version, URL, error and raw detail. Paste that into the issue.
+3. **The full error text** — tap Report on the error screen; it fires a Sentry event with version, URL, error and raw detail.
 4. Steps to reproduce.
 
 ## Development setup
@@ -17,6 +20,13 @@ Open an issue at https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues a
 - Local build: `npm ci && npx expo prebuild --platform android && cd android && ./gradlew assembleRelease`
 - Typecheck: `npx tsc --noEmit`
 - Style: prettier defaults; no comments unless they earn their place; match surrounding code.
+
+## Build environment variables
+
+- `EXPO_PUBLIC_SENTRY_DSN` — required for Sentry to receive any event (analysis/download
+  failures, "Report an issue", the native failure notification). Set it in the **EAS project
+  env vars** (project → Settings → Environment variables); the value is never committed. Without
+  it the app builds fine but every report is a silent no-op.
 
 ## Branch flow
 
@@ -33,5 +43,5 @@ Open an issue at https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues a
 
 ## Notes
 
-- The project must stay **public** (or at least releases/packages public) so the in-app self-update and issue links work without login.
+- The project must stay **public** (or at least releases/packages public) so the in-app self-update works without login.
 - The old GitHub mirror (`XyrusCode/video-plucker-mobile-v2`) is read-only; don't push there.

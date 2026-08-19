@@ -1,19 +1,44 @@
-// Pre-filled GitLab issue links — port of V1's reportIssueUrl. Lets users report failures
-// with version + URL + error already in the title/body.
+// Error reporting — all failures and crashes go to Sentry (org `xyrus-code`, project
+// `video-plucker`). There are no GitHub/GitLab issue links anymore: analysis failures,
+// download failures and manual "Report an issue" presses are captured as Sentry events,
+// which keeps issue tracking + bug tracking in one place.
 
-import { Linking } from 'react-native';
+import * as Sentry from '@sentry/react-native';
+import * as Application from 'expo-application';
 
-const ISSUES_BASE = 'https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues/new';
+const appVersion = (): string => Application.nativeApplicationVersion ?? 'unknown';
 
-/** Open a pre-filled issue. Best-effort; never throws. */
-export function openIssue(params: { title: string; body: string }): void {
-  const query =
-    `issue[title]=${encodeURIComponent(params.title)}` +
-    `&issue[description]=${encodeURIComponent(params.body)}`;
-  Linking.openURL(`${ISSUES_BASE}?${query}`).catch(() => {});
+/** Fire an error report to Sentry. Best-effort; never throws. */
+export function reportFailure(params: {
+  title: string;
+  body: string;
+  url?: string;
+  userInitiated?: boolean;
+}): void {
+  try {
+    Sentry.captureMessage(params.title, {
+      level: 'error',
+      tags: { source: params.userInitiated ? 'user-report' : 'auto' },
+      extra: {
+        appVersion: appVersion(),
+        url: params.url ?? '',
+        detail: params.body,
+      },
+    });
+  } catch {
+    // never throw out of a report path
+  }
 }
 
-/** Open a blank issue (Settings → About). */
-export function openBlankIssue(): void {
-  Linking.openURL(ISSUES_BASE).catch(() => {});
+/** Fire a user-initiated "Report an issue" (Settings → About) to Sentry. */
+export function reportUserIssue(): void {
+  try {
+    Sentry.captureMessage('User reported an issue from Settings', {
+      level: 'info',
+      tags: { source: 'settings' },
+      extra: { appVersion: appVersion() },
+    });
+  } catch {
+    // never throw out of a report path
+  }
 }

@@ -17,7 +17,12 @@ export async function probeUrl(url: string): Promise<ProbeResult> {
     throw new Error(describeNativeFailure(e));
   }
   if (!res || res.ok === false) {
-    throw new Error(res?.error ?? 'Analysis failed');
+    const detail = res?.error?.trim();
+    throw new Error(
+      detail && detail !== 'Analysis failed'
+        ? `Analysis failed: ${detail}`
+        : 'Analysis failed. The downloader engine reported an error — update it in Settings → Update downloader and try again.'
+    );
   }
   return res as ProbeResult;
 }
@@ -26,10 +31,11 @@ export async function probeUrl(url: string): Promise<ProbeResult> {
 function describeNativeFailure(e: unknown): string {
   if (e instanceof Error) {
     const msg = e.message?.trim();
-    return msg ? `Analysis failed: ${msg}` : 'Analysis failed (no details from the engine)';
+    if (msg && msg !== 'Analysis failed') return `Analysis failed: ${msg}`;
+    return 'Analysis failed (no details from the engine)';
   }
   const raw = typeof e === 'string' ? e : String(e);
-  return raw.trim() ? `Analysis failed: ${raw}` : 'Analysis failed';
+  return raw.trim() ? `Analysis failed: ${raw}` : 'Analysis failed (no details from the engine)';
 }
 
 /**

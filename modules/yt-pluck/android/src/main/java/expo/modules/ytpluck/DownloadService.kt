@@ -8,7 +8,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -281,12 +280,14 @@ class DownloadService : Service() {
     }
   }
 
-  /** A dismissible notification carrying the failure reason and a Report action (pre-filled GitHub issue). */
+  /** A dismissible notification carrying the failure reason and a Report action (fires to Sentry). */
   private fun notifyFailed(jobId: String, p: JobProgress) {
     if (!hasNotifPermission()) return
     val reason = p.error ?: "Download failed"
-    val reportIntent = Intent(Intent.ACTION_VIEW, Uri.parse(reportIssueUrl(p, appVersion(this))))
-    val reportPi = PendingIntent.getActivity(
+    val reportIntent = Intent(this, ReportReceiver::class.java).apply {
+      putExtra(EXTRA_JOB_ID, jobId)
+    }
+    val reportPi = PendingIntent.getBroadcast(
       this, reportNotifId(jobId), reportIntent,
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
@@ -514,30 +515,3 @@ private fun isLoginRequiredError(message: String): Boolean {
     "unauthorized",
   ).any { m.contains(it) }
 }
-
-/**
- * Build the GitHub issue URL a failed download's Report action opens. Pre-filled with app
- * version, title, URL and the raw yt-dlp error.
- */
-fun reportIssueUrl(p: JobProgress, appVersion: String): String {
-  val title = "Download failed: ${p.title.take(80)}"
-  val body = buildString {
-    appendLine("**App:** Video Plucker $appVersion")
-    appendLine("**Progress:** ${p.percent.toInt()}%")
-    appendLine("**Title:** ${p.title}")
-    appendLine("**URL:** ${p.url}")
-    appendLine()
-    appendLine("**Error:**")
-    appendLine("```")
-    appendLine(p.error ?: "unknown error")
-    appendLine("```")
-  }
-  val query = "issue[title]=${Uri.encode(title)}&issue[description]=${Uri.encode(body)}"
-  return "https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues/new?$query"
-}
-
-private fun appVersion(context: Context): String =
-  runCatching {
-    val info = context.packageManager.getPackageInfo(context.packageName, 0)
-    info.versionName ?: "?"
-  }.getOrDefault("?")

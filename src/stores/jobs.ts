@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import YtPluckModule, { addDownloadProgressListener } from 'yt-pluck';
 import type { DownloadProgressEvent } from 'yt-pluck';
+import { reportFailure } from '../lib/report';
 
 export type JobEntry = DownloadProgressEvent;
 
@@ -27,12 +28,32 @@ export const useJobs = create<JobsState>()((set) => ({
 }));
 
 let subscribed = false;
+const reportedFailures = new Set<string>();
 
 /** Wire the native progress stream into the store once. */
 export function subscribeToJobEvents() {
   if (subscribed) return;
   subscribed = true;
-  addDownloadProgressListener((event) => useJobs.getState().upsert(event));
+  addDownloadProgressListener((event) => {
+    useJobs.getState().upsert(event);
+    // Every failed download lands in Sentry automatically (once per job), so a background
+    // failure is captured even if the user never opens the queue.
+    if (event.status === 'FAILED' && !reportedFailures.has(event.jobId)) {
+      reportedFailures.add(event.jobId);
+      reportFailure({
+        title: `Download failed: ${event.title.slice(0, 80)}`,
+        body: [
+          `**Title:** ${event.title}`,
+          `**URL:** ${event.url}`,
+          '**Error:**',
+          '```',
+          event.error ?? 'no error detail',
+          '```',
+        ].join('\n'),
+        url: event.url,
+      });
+    }
+  });
 }
 
 // --- Control wrappers (thin over the native module) ----------------------------------------

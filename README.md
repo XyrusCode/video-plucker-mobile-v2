@@ -25,7 +25,9 @@ cd android && ./gradlew assembleRelease
 
 ## Reporting issues
 
-Use the [issue tracker](https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues). The app's Report buttons pre-fill version, URL and the raw engine error — see [CONTRIBUTING.md](CONTRIBUTING.md) for what's most useful.
+All in-app error/crash reporting goes to Sentry (org `xyrus-code`, project `video-plucker`)
+— analysis failures, download failures and "Report an issue" presses are captured there
+automatically. For anything Sentry can't capture, use the [GitLab issue tracker](https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues) — see [CONTRIBUTING.md](CONTRIBUTING.md) for what's most useful.
 
 ## History
 

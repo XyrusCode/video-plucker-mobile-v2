@@ -12,13 +12,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import * as Application from 'expo-application';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ProbeResult, QualityId } from 'yt-pluck';
 import { Card, EmptyState, GhostButton, PrimaryButton, Row, Screen } from '../components/ui';
 import { formatDuration } from '../lib/format';
 import { platformForExtractorKey, platformForVideoUrl } from '../lib/platforms';
-import { openIssue } from '../lib/report';
+import { reportFailure } from '../lib/report';
 import { QUALITIES, VIDEO_QUALITIES, qualityHeightLabel } from '../lib/quality';
 import { useJobs } from '../stores/jobs';
 import { usePrefs } from '../stores/prefs';
@@ -74,6 +73,12 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
       setError(cleanEngineError(e, target));
       setProbe(null);
       setPhase('error');
+      // Every analysis failure lands in Sentry automatically.
+      reportFailure({
+        title: `Analysis failed: ${target.slice(0, 80)}`,
+        body: buildReportBody(target, cleanEngineError(e, target), describeError(e)),
+        url: target,
+      });
     }
   };
 
@@ -150,19 +155,15 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
             <GhostButton
               label="Report"
               onPress={() =>
-                openIssue({
+                reportFailure({
                   title: `Analysis failed: ${lastAnalyzedUrl.slice(0, 80)}`,
-                  body: [
-                    `**App:** Video Plucker ${Application.nativeApplicationVersion ?? 'unknown'}`,
-                    `**URL:** ${lastAnalyzedUrl}`,
-                    '**Error:**',
-                    '```',
+                  body: buildReportBody(
+                    lastAnalyzedUrl,
                     error ?? '',
-                    '```',
-                    ...(detail
-                      ? ['**Detail:**', '```', detail, '```']
-                      : []),
-                  ].join('\n'),
+                    detail ?? undefined
+                  ),
+                  url: lastAnalyzedUrl,
+                  userInitiated: true,
                 })
               }
               style={styles.reportBtn}
@@ -254,6 +255,18 @@ function safeStringify(e: unknown): string {
   } catch {
     return String(e);
   }
+}
+
+/** Human-readable report body (markdown) for a failed analysis. */
+function buildReportBody(url: string, error: string, detail?: string): string {
+  return [
+    `**URL:** ${url}`,
+    '**Error:**',
+    '```',
+    error,
+    '```',
+    ...(detail ? ['**Detail:**', '```', detail, '```'] : []),
+  ].join('\n');
 }
 
 const styles = StyleSheet.create({

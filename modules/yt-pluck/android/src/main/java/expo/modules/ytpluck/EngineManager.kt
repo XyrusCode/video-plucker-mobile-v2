@@ -84,14 +84,17 @@ object EngineManager {
     }
     var result = runCatching { YoutubeDL.getInfo(request) }
     if (result.isFailure) {
-      val msg = result.exceptionOrNull()!!.message?.takeIf { it.isNotBlank() }
+      val msg = exceptionDetail(result.exceptionOrNull()!!)
+        .takeIf { it.isNotBlank() }
         ?: "Analysis failed. Update the downloader in Settings and try again."
       if ((isStaleEngineError(msg) || !selfHealedThisSession) && updateEngine(context)) {
         selfHealedThisSession = true
         result = runCatching { YoutubeDL.getInfo(request) }
       }
       if (result.isFailure) {
-        val retryMsg = result.exceptionOrNull()!!.message?.takeIf { it.isNotBlank() } ?: msg
+        val retryMsg = exceptionDetail(result.exceptionOrNull()!!)
+          .takeIf { it.isNotBlank() }
+          ?: msg
         return@withContext failure(retryMsg)
       }
     }
@@ -111,7 +114,7 @@ object EngineManager {
         "source" to (info.extractorKey?.takeIf { it.isNotBlank() } ?: info.extractor),
         "availableHeights" to heights,
       )
-    }.getOrElse { failure("Analysis failed: ${it.message ?: it::class.simpleName ?: "unknown"}") }
+    }.getOrElse { failure(exceptionDetail(it)) }
   }
 
   /**
@@ -298,6 +301,19 @@ fun formatSpeed(bytesPerSec: Float): String {
   val mb = bytesPerSec / (1024f * 1024f)
   return if (mb >= 1f) String.format("%.2f MB/s", mb)
   else String.format("%.0f KB/s", bytesPerSec / 1024f)
+}
+
+/**
+ * A never-blank, maximally-informative string for a failure: the exception type, its message,
+ * and the first stack line. yt-dlp's error detail (extractor, HTTP status, etc.) lives in the
+ * message; this guarantees it survives the native→JS bridge instead of collapsing to a bare
+ * "Analysis failed".
+ */
+fun exceptionDetail(e: Throwable): String {
+  val type = e::class.simpleName ?: "Exception"
+  val message = e.message?.trim().takeIf { it.isNotBlank() } ?: "no message"
+  val frame = e.stackTrace?.firstOrNull()?.toString()
+  return if (frame != null) "$type: $message @ $frame" else "$type: $message"
 }
 
 /**

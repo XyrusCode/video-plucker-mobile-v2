@@ -29,4 +29,8 @@ dependencies {
   // current yt-dlp runs). Same coordinates as the V1 Kotlin app.
   implementation 'io.github.junkfood02.youtubedl-android:library:0.18.1'
   implementation 'io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1'
+  // Sentry Android SDK for user-initiated failure reports (notification "Report" action).
+  // compileOnly: the app already bundles sentry-android via @sentry/react-native (same
+  // version); this module only needs it on the compile classpath.
+  compileOnly 'io.sentry:sentry-android:8.52.0'
 }

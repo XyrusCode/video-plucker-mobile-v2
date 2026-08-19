@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, GhostButton, PrimaryButton, ProgressBar, Row, Screen, SectionTitle } from '../components/ui';
-import { openBlankIssue } from '../lib/report';
+import { reportUserIssue } from '../lib/report';
 import { usePrefs } from '../stores/prefs';
 import { checkForUpdates, downloadUpdate, installUpdate, type UpdateInfo } from '../services/update';
 import { getFlag } from '../services/remoteConfig';
@@ -174,7 +174,7 @@ export default function SettingsScreen({
             Engine: {engineBooted ? 'ready' : 'not booted'} • yt-dlp + ffmpeg
           </Text>
           <Text style={styles.dim}>Downloads: YouTube, X/Twitter, TikTok, Instagram, Facebook, Reddit, VK</Text>
-          <Pressable style={styles.rowBtn} onPress={openBlankIssue}>
+          <Pressable style={styles.rowBtn} onPress={reportUserIssue}>
             <Row style={styles.row}>
               <Ionicons name="bug" size={18} color={colors.textDim} />
               <Text style={styles.rowLabel}>Report an issue</Text>

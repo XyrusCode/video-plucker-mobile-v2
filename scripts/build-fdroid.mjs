@@ -70,8 +70,9 @@ try {
   const gsFile = join(ROOT, 'android', 'app', 'google-services.json');
   if (existsSync(gsFile)) rmSync(gsFile);
 
-  // 5. Build the unsigned release APK.
-  run('cmd', ['/c', 'gradlew.bat', 'assembleRelease'], {
+  // 5. Build the unsigned release APK (-PnoAbiSplits → single universal APK, matching the
+  //    expected app-release.apk output path and F-Droid's single-APK model).
+  run('cmd', ['/c', 'gradlew.bat', 'assembleRelease', '-PnoAbiSplits'], {
     cwd: join(ROOT, 'android'),
   });
 

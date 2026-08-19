@@ -45,9 +45,10 @@ jobs:
         working-directory: android
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          # The signed release APK is built here too so a tag release can reuse it
-          # without rebuilding (see release.yml).
+          # Per-ABI splits (arm64-v8a, armeabi-v7a, x86_64) like V1.
           ./gradlew assembleDebug assembleRelease --console=plain
+          # Emit a single universal APK for in-app updater & website links, matching V1.
+          ./gradlew assembleRelease -PnoAbiSplits --console=plain
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7

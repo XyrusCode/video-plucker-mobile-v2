@@ -91,9 +91,11 @@ release-build:
     - echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
     # Signed release APK reused by the tag release job (no rebuild on tags).
     - cd android && ./gradlew assembleRelease --console=plain && cd ..
+    # Emit a single universal APK for in-app updater & website links, matching V1.
+    - cd android && ./gradlew assembleRelease -PnoAbiSplits --console=plain && cd ..
   artifacts:
     paths:
-      - android/app/build/outputs/apk/release/app-release.apk
+      - android/app/build/outputs/apk/release/*.apk
       # Reused by the release job's Sentry upload; purged after a successful release.
       - android/app/build/generated/assets/createBundleReleaseJsAndAssets/
       - android/app/build/generated/sourcemaps/react/release/
@@ -132,16 +134,24 @@ release:
       curl -sS -L --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" -o release-build-artifacts.zip \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/$job_id/artifacts"
       unzip -qo release-build-artifacts.zip
-    - test -f android/app/build/outputs/apk/release/app-release.apk
-    - mkdir -p dist && cp android/app/build/outputs/apk/release/app-release.apk dist/app-universal-release.apk
+    - ls android/app/build/outputs/apk/release/*.apk >/dev/null
+    - mkdir -p dist && cp android/app/build/outputs/apk/release/*.apk dist/
+    - # Rename universal APK to consistent name across mirrors
+    - if [ -f dist/app-release.apk ]; then mv dist/app-release.apk dist/app-universal-release.apk; fi
     - VERSION="${CI_COMMIT_TAG#v}"
     # Extract this version's CHANGELOG section into release-notes.md (heading may carry a date suffix).
     - awk -v v="$VERSION" '/^## \[/ { if (on) exit; if ($0 ~ "^## \\[" v "\\]") on=1 } on { print }' CHANGELOG.md > release-notes.md
-    # 1) Publish the APK to the generic package registry (public when the project is public).
-    - 'curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file dist/app-universal-release.apk "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/video-plucker/$VERSION/app-universal-release.apk"'
-    # 2) Create the GitLab Release pointing at the package.
-    - curl -sSLo /usr/local/bin/release-cli https://gitlab.com/gitlab-org/release-cli/-/releases/v0.24.0/downloads/bin/release-cli-linux-amd64 && chmod +x /usr/local/bin/release-cli
-    - release-cli create --name "$CI_COMMIT_TAG" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_TAG" --description-file release-notes.md --assets-link --name "app-universal-release.apk" --url "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/video-plucker/$VERSION/app-universal-release.apk" --link-type "package"
+    # 1) Publish each per-ABI APK to the generic package registry (public when the project is public).
+    - for apk in dist/*.apk; do curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$apk" "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/video-plucker/$VERSION/$(basename "$apk")"; done
+    # 2) Create the GitLab Release pointing at the per-ABI packages.
+    - |
+      curl -sSLo /usr/local/bin/release-cli https://gitlab.com/gitlab-org/release-cli/-/releases/v0.24.0/downloads/bin/release-cli-linux-amd64 && chmod +x /usr/local/bin/release-cli
+      args=(create --name "$CI_COMMIT_TAG" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_TAG" --description-file release-notes.md)
+      for apk in dist/*.apk; do
+        name="$(basename "$apk")"
+        args+=(--assets-link --name "$name" --url "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/video-plucker/$VERSION/$name" --link-type package)
+      done
+      release-cli "${args[@]}"
     # 3) Sentry source maps (optional; best-effort) from the reused build.
     - if [ -n "$SENTRY_AUTH_TOKEN" ]; then
         RELEASE="$VERSION";
@@ -153,7 +163,9 @@ release:
       fi
     # 4) Mirror the APK to Cloudflare R2 (optional; best-effort). R2 keeps every version.
     - if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
-        npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile/$VERSION/app-universal-release.apk" --file dist/app-universal-release.apk --remote || true;
+        for apk in dist/*.apk; do
+          npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile/$VERSION/$(basename "$apk")" --file "$apk" --remote || true;
+        done
       fi
     # 5) Purge the reused build artifacts. R2 + package registry retain this release's APK,
     #    so old debug/release APKs + source maps no longer need preserving.

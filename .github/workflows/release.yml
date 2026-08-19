@@ -45,17 +45,25 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ steps.find-run.outputs.run_id }}
 
-      - name: Collect APK
+      - name: Collect APKs
         run: |
           mkdir -p dist
-          APK=$(find reuse -type f -name 'app-release.apk' | head -n 1)
-          if [ -z "$APK" ]; then
-            echo "::error::app-release.apk not found under reuse/"
+          # Per-ABI APKs (arm64-v8a, armeabi-v7a, x86_64) — V1 parity
+          APKS=$(find reuse -type f -name 'app-*-release.apk')
+          # Universal APK (matching V1's app-universal-release.apk)
+          UNIV=$(find reuse -type f -name 'app-release.apk' | head -n 1)
+          if [ -z "$APKS" ] && [ -z "$UNIV" ]; then
+            echo "::error::no APKs found under reuse/"
             find reuse -maxdepth 8 -type d | head -100
             exit 1
           fi
-          cp "$APK" dist/app-universal-release.apk
-          echo "Collected APK from: $APK"
+          if [ -n "$UNIV" ]; then
+            cp "$UNIV" dist/app-universal-release.apk
+          fi
+          for apk in $APKS; do
+            cp "$apk" "dist/$(basename "$apk")"
+          done
+          ls -la dist
 
       - name: Upload Sentry source maps
         if: env.SENTRY_AUTH_TOKEN != ''
@@ -103,7 +111,9 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile/v${GITHUB_REF_NAME#v}/app-universal-release.apk" --file dist/app-universal-release.apk --remote
+          for apk in dist/*.apk; do
+            npx --yes wrangler@4 r2 object put "video-plucker-releases/mobile/v${GITHUB_REF_NAME#v}/$(basename "$apk")" --file "$apk" --remote
+          done
         continue-on-error: true
 
       - name: Purge stale build artifacts

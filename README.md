@@ -6,7 +6,7 @@ React Native + Expo SDK 57, with a Kotlin native module wrapping the yt-dlp engi
 
 ## Releases
 
-Built and published by GitLab CI for every `v*` tag. Download the latest `app-universal-release.apk` from the [Releases page](https://gitlab.com/KyriosNyx/video-plucker-mobile-v2/-/releases) (installable over older builds — same package id and signing key).
+Built and published by GitLab CI for every `v*` tag. Download the latest `app-universal-release.apk` from the [Releases page](https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/releases) (installable over older builds — same package id and signing key).
 
 ## Development
 
@@ -25,7 +25,7 @@ cd android && ./gradlew assembleRelease
 
 ## Reporting issues
 
-Use the [issue tracker](https://gitlab.com/KyriosNyx/video-plucker-mobile-v2/-/issues). The app's Report buttons pre-fill version, URL and the raw engine error — see [CONTRIBUTING.md](CONTRIBUTING.md) for what's most useful.
+Use the [issue tracker](https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues). The app's Report buttons pre-fill version, URL and the raw engine error — see [CONTRIBUTING.md](CONTRIBUTING.md) for what's most useful.
 
 ## History
 

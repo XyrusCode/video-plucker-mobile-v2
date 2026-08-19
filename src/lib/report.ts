@@ -3,7 +3,7 @@
 
 import { Linking } from 'react-native';
 
-const ISSUES_BASE = 'https://gitlab.com/KyriosNyx/video-plucker-mobile-v2/-/issues/new';
+const ISSUES_BASE = 'https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues/new';
 
 /** Open a pre-filled issue. Best-effort; never throws. */
 export function openIssue(params: { title: string; body: string }): void {

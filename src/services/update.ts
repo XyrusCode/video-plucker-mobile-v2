@@ -6,7 +6,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 
 // Project must be public for unauthenticated in-app checks and APK downloads to work.
-const PROJECT_PATH = 'KyriosNyx/video-plucker-mobile-v2';
+const PROJECT_PATH = 'XyrusCode/video-plucker-mobile-v2';
 const PROJECT_API_ID = encodeURIComponent(PROJECT_PATH);
 const GITLAB = 'https://gitlab.com';
 

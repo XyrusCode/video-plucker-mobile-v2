@@ -533,7 +533,7 @@ fun reportIssueUrl(p: JobProgress, appVersion: String): String {
     appendLine("```")
   }
   val query = "issue[title]=${Uri.encode(title)}&issue[description]=${Uri.encode(body)}"
-  return "https://gitlab.com/KyriosNyx/video-plucker-mobile-v2/-/issues/new?$query"
+  return "https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues/new?$query"
 }
 
 private fun appVersion(context: Context): String =

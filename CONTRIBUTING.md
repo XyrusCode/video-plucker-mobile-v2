@@ -1,10 +1,10 @@
 # Contributing to Video Plucker
 
-Thanks for helping! Everything lives on GitLab: https://gitlab.com/KyriosNyx/video-plucker-mobile-v2
+Thanks for helping! Everything lives on GitLab: https://gitlab.com/XyrusCode/video-plucker-mobile-v2
 
 ## Reporting bugs
 
-Open an issue at https://gitlab.com/KyriosNyx/video-plucker-mobile-v2/-/issues and include:
+Open an issue at https://gitlab.com/XyrusCode/video-plucker-mobile-v2/-/issues and include:
 
 1. **App version** (Settings → About) and Android version/device.
 2. **The exact URL** that failed.

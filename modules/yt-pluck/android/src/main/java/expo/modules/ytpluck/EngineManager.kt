@@ -311,7 +311,7 @@ fun formatSpeed(bytesPerSec: Float): String {
  */
 fun exceptionDetail(e: Throwable): String {
   val type = e::class.simpleName ?: "Exception"
-  val message = e.message?.trim().takeIf { it.isNotBlank() } ?: "no message"
+  val message = e.message?.trim()?.takeIf { it.isNotBlank() } ?: "no message"
   val frame = e.stackTrace?.firstOrNull()?.toString()
   return if (frame != null) "$type: $message @ $frame" else "$type: $message"
 }

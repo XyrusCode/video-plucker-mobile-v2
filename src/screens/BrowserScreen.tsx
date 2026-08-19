@@ -15,13 +15,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, type WebViewNavigation, type WebViewMessageEvent } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen } from '../components/ui';
-import {
-  platformForVideoUrl,
-  SUPPORTED_PLATFORMS,
-  webFallbackFromAppLink,
-} from '../lib/platforms';
-import { useSharedUrl } from '../stores/sharedUrl';
 import { colors, radii, spacing } from '../theme';
 
 /** Scroll listener bridging page scroll direction to the JS chrome (8px threshold, like V1). */
@@ -114,98 +107,96 @@ export default function BrowserScreen() {
   };
 
   return (
-    <Screen>
-      <SafeAreaView edges={['top']} style={styles.container}>
-        <Animated.View style={[styles.chrome, !landing && chromeStyle]}>
-          <View style={styles.addressRow}>
-            <TextInput
-              style={styles.address}
-              placeholder="Paste URL or search…"
-              placeholderTextColor={colors.textDim}
-              value={input}
-              onChangeText={setInput}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-              returnKeyType="go"
-              onSubmitEditing={() => go(toUrl(input))}
-            />
-            <Pressable
-              style={({ pressed }) => [styles.goBtn, pressed && styles.goBtnPressed]}
-              onPress={() => go(toUrl(input))}
-              disabled={!input.trim()}
-            >
-              <Ionicons name="arrow-forward" size={18} color="#fff" />
-            </Pressable>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chips}
-          >
-            {SUPPORTED_PLATFORMS.map((p) => (
-              <Pressable
-                key={p.cookieKey}
-                style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
-                onPress={() => go(p.homeUrl)}
-              >
-                <View style={[styles.chipDot, { backgroundColor: p.color }]} />
-                <Text style={styles.chipText}>{p.name}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </Animated.View>
-
-        <View style={styles.webBox}>
-          <WebView
-            ref={webRef}
-            source={{ uri: 'about:blank' }}
-            style={styles.web}
-            onNavigationStateChange={onNavigationStateChange}
-            onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-            onMessage={onMessage}
-            injectedJavaScript={SCROLL_LISTENER}
-            allowsBackForwardNavigationGestures
+    <SafeAreaView edges={['top']} className="flex-1 bg-background">
+      <Animated.View style={styles.chrome}>
+        <View style={styles.addressRow} className="flex-row items-center gap-2">
+          <TextInput
+            style={styles.address}
+            placeholder="Paste URL or search…"
+            placeholderTextColor={colors.textDim}
+            value={input}
+            onChangeText={setInput}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            returnKeyType="go"
+            onSubmitEditing={() => go(toUrl(input))}
           />
-          {landing && (
-            <View style={styles.landing}>
-              <Text style={styles.landingTitle}>Where to?</Text>
-              <Text style={styles.landingDim}>
-                Pick a site, or type a URL above. The Pluck button appears on video pages.
-              </Text>
-              <View style={styles.platformList}>
-                {SUPPORTED_PLATFORMS.map((p) => (
-                  <Pressable
-                    key={p.cookieKey}
-                    style={({ pressed }) => [styles.platformCard, pressed && styles.platformCardPressed]}
-                    onPress={() => go(p.homeUrl)}
-                  >
-                    <View style={[styles.platformDot, { backgroundColor: p.color }]} />
-                    <Text style={styles.platformName}>{p.name}</Text>
-                    <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
+          <Pressable
+            onPress={() => go(toUrl(input))}
+            disabled={!input.trim()}
+            className="rounded-md bg-primary w-12 h-12 items-center justify-center"
+          >
+            <Ionicons name="arrow-forward" size={18} color="#fff" />
+          </Pressable>
         </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chips} className="flex gap-2 px-4"
+        >
+          {SUPPORTED_PLATFORMS.map((p) => (
+            <Pressable
+              key={p.cookieKey}
+              onPress={() => go(p.homeUrl)}
+              className="flex-row items-center gap-2 bg-panel2 border border-2 border-radius-pill px-4 py-2"
+            >
+              <View className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+              <Text className="flex-1 text-foreground font-body">{p.name}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </Animated.View>
+
+      <View style={styles.webBox} className="flex-1">
+        <WebView
+          ref={webRef}
+          source={{ uri: 'about:blank' }}
+          style={styles.web}
+          onNavigationStateChange={onNavigationStateChange}
+          onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+          onMessage={onMessage}
+          injectedJavaScript={SCROLL_LISTENER}
+          allowsBackForwardNavigationGestures
+        />
+        {landing && (
+          <View style={styles.landing} className="absolute top-0 left-0 right-0 bottom-0 bg-background p-6">
+            <Text style={styles.landingTitle} className="text-foreground font-body text-2xl font-bold mt-6">
+              Where to?
+            </Text>
+            <Text style={styles.landingDim} className="text-muted-foreground text-sm leading-[20px] mt-2">
+              Pick a site, or type a URL above. The Pluck button appears on video pages.
+            </Text>
+            <View style={styles.platformList} className="gap-4 mt-8">
+              {SUPPORTED_PLATFORMS.map((p) => (
+                <Pressable
+                  key={p.cookieKey}
+                  onPress={() => go(p.homeUrl)}
+                  className="flex-row items-center gap-4 bg-panel border border-2 border-radius-md py-3 px-4 h-12"
+                >
+                  <View className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+                  <Text className="flex-1 text-foreground font-body">{p.name}</Text>
+                  <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
 
         {isVideoPage && (
           <Pressable
-            style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-            onPress={pluck}
+            style={styles.fab} className="flex-row items-center gap-4 bg-primary px-6 py-4 rounded-2xl absolute right-6 bottom-6"
           >
             <Ionicons name="arrow-down-circle" size={22} color="#fff" />
-            <Text style={styles.fabText}>Pluck</Text>
+            <Text style={styles.fabText} className="text-white font-bold text-lg">Pluck</Text>
           </Pressable>
         )}
-      </SafeAreaView>
-    </Screen>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   chrome: {
     backgroundColor: colors.panel,
     borderBottomColor: colors.border,
@@ -225,7 +216,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 14,
     paddingHorizontal: spacing.md,
-    height: 40,
+    // height: 40 removed — let padding determine natural height
   },
   goBtn: {
     width: 40,
@@ -235,7 +226,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  goBtnPressed: { opacity: 0.85 },
   chips: { gap: spacing.sm, paddingRight: spacing.md },
   chip: {
     flexDirection: 'row',
@@ -268,7 +258,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginTop: spacing.xl,
   },
-  landingDim: { color: colors.textDim, fontSize: 14, lineHeight: 20, marginTop: spacing.sm },
+  landingDim: {
+    color: colors.textDim,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: spacing.sm,
+  },
   platformList: { gap: spacing.sm, marginTop: spacing.xl },
   platformCard: {
     flexDirection: 'row',

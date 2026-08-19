@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { addSharedUrlListener } from 'yt-pluck';
+import { GluestackUIProvider } from './components/ui/gluestack-ui-provider';
 import RootNavigator, { navigationRef } from './src/navigation';
 import { initRemoteConfig } from './src/services/remoteConfig';
 import { initSentry } from './src/services/sentry';
@@ -20,10 +21,14 @@ export default function App() {
     let mounted = true;
 
     (async () => {
-      initSentry();
-      subscribeToJobEvents();
-      await initRemoteConfig();
-      await bootEngine();
+      // Each boot step is isolated: a failure in one service must never block the UI
+      // from mounting (a stuck `ready=false` renders a permanent black screen).
+      await Promise.allSettled([
+        Promise.resolve().then(() => initSentry()),
+        Promise.resolve().then(() => subscribeToJobEvents()),
+        initRemoteConfig(),
+        bootEngine(),
+      ]);
       if (!mounted) return;
       setReady(true);
     })();
@@ -61,19 +66,21 @@ export default function App() {
   if (!ready) return null;
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer
-        ref={navigationRef}
-        onReady={() => {
-          if (pendingTabNav.current) {
-            pendingTabNav.current = false;
-            navigationRef.navigate('Main', { screen: 'Download' });
-          }
-        }}
-      >
-        <RootNavigator />
-      </NavigationContainer>
-      <StatusBar style="light" />
-    </SafeAreaProvider>
+    <GluestackUIProvider mode="dark">
+      <SafeAreaProvider>
+        <NavigationContainer
+          ref={navigationRef}
+          onReady={() => {
+            if (pendingTabNav.current) {
+              pendingTabNav.current = false;
+              navigationRef.navigate('Main', { screen: 'Download' });
+            }
+          }}
+        >
+          <RootNavigator />
+        </NavigationContainer>
+        <StatusBar style="light" />
+      </SafeAreaProvider>
+    </GluestackUIProvider>
   );
 }

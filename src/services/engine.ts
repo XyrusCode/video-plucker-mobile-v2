@@ -7,7 +7,10 @@ import { usePrefs } from '../stores/prefs';
 export async function bootEngine(): Promise<boolean> {
   const prefs = usePrefs.getState();
   if (prefs.engineBooted) return true;
-  const ok = await YtPluckModule.initEngineAsync();
+  const ok = await Promise.race([
+    YtPluckModule.initEngineAsync(),
+    new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 60000)),
+  ]);
   if (ok) {
     // Wait (bounded) for the yt-dlp self-update so the FIRST analyze uses the latest binary —
     // the bundled one goes stale fast against TikTok/X. The native side keeps running even if

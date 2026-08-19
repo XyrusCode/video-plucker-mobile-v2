@@ -2,13 +2,13 @@
 // Port of V1's QueueTab.
 
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, EmptyState, GhostButton, ProgressBar, Row, Screen } from '../components/ui';
+import { useJobs } from '../stores/jobs';
+import { usePrefs } from '../stores/prefs';
 import { formatEta, formatSpeed } from '../lib/format';
-import { activeJobCount, cancelJob, pauseJob, resumeJob, useJobs } from '../stores/jobs';
-import { colors, radii, spacing } from '../theme';
+import { colors, spacing } from '../theme';
 import type { JobEntry } from '../stores/jobs';
 
 const ORDER = ['RUNNING', 'QUEUED', 'PAUSED', 'COMPLETED', 'FAILED', 'CANCELLED'] as const;
@@ -21,92 +21,69 @@ export default function QueueScreen() {
   const active = activeJobCount(jobs);
 
   return (
-    <Screen>
-      <SafeAreaView edges={['top']} style={styles.safe}>
-        <Text style={styles.title}>Queue</Text>
-        {entries.length === 0 ? (
-          <EmptyState icon="≡" text="Nothing here yet — downloads you start will show up here" />
-        ) : (
-          <View style={styles.list}>
-            {entries.map((job) => (
-              <JobCard key={job.jobId} job={job} />
-            ))}
-          </View>
-        )}
-      </SafeAreaView>
-    </Screen>
+    <SafeAreaView edges={['top']} className="flex-1 bg-background px-4">
+      <Text style={styles.title}>Queue</Text>
+      {entries.length === 0 ? (
+        <View className="items-center gap-3 py-12">
+          <Text size="4xl" className="text-muted-foreground">…</Text>
+          <Text size="sm" className="text-center text-muted-foreground">Nothing here yet — downloads you start will show up here</Text>
+        </View>
+      ) : (
+        <View className="gap-2">
+          {entries.map((job) => (
+            <View key={job.jobId} className="p-4 rounded-xl bg-card border border-border gap-4">
+              <View className="flex-row items-center justify-between">
+                <Text size="sm" bold className="flex-1 text-foreground font-body">
+                  {job.title}
+                </Text>
+                <Text size="sm" className="text-[11px] font-bold tracking-wider uppercase text-ok">
+                  {job.status}
+                </Text>
+              </View>
+              {job.status === 'RUNNING' || job.status === 'QUEUED' && (
+                <View className="mt-2 flex items-center gap-2">
+                  <Progress value={job.percent} className="h-2 bg-secondary rounded-full" />
+                  <View className="flex-1 gap-2">
+                    <Text size="xs" className="text-muted-foreground">
+                      {job.percent.toFixed(0)}% • {formatSpeed(job.speedBytesPerSec)}
+                    </Text>
+                    <Text size="xs" className="text-muted-foreground">{formatEta(job.etaSeconds)}</Text>
+                  </View>
+                </View>
+              )}
+              {job.status === 'PAUSED' && (
+                <Text size="xs" className="text-muted-foreground">Paused at {job.percent.toFixed(0)}% — resume to continue</Text>
+              )}
+              {job.status === 'FAILED' && job.error && (
+                <Text size="xs" className="text-warn" numberOfLines={3}>
+                  {job.error}
+                </Text>
+              )}
+              <View className="mt-3 flex gap-2">
+                {job.status === 'RUNNING' || job.status === 'QUEUED' && (
+                  <Button variant="outline" size="sm" onPress={() => void pauseJob(job.jobId)}>
+                    <ButtonText>Pause</ButtonText>
+                  </Button>
+                )}
+                {job.status === 'PAUSED' && (
+                  <Button variant="outline" size="sm" onPress={() => void resumeJob(job.jobId)}>
+                    <ButtonText>Resume</ButtonText>
+                  </Button>
+                )}
+                {job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'CANCELLED' && (
+                  <Button variant="outline" size="sm" onPress={() => void useJobs.getState().remove(job.jobId)}>
+                    <ButtonText>Clear</ButtonText>
+                  </Button>
+                )}
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
 
-function JobCard({ job }: { job: JobEntry }) {
-  const isLive = job.status === 'RUNNING' || job.status === 'QUEUED';
-  const isPaused = job.status === 'PAUSED';
-  const isFinished = job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'CANCELLED';
-  const statusColor =
-    job.status === 'FAILED'
-      ? colors.warn
-      : job.status === 'COMPLETED'
-        ? colors.ok
-        : job.status === 'CANCELLED'
-          ? colors.textDim
-          : colors.accent;
-
-  return (
-    <Card style={styles.card}>
-      <Row style={styles.header}>
-        <Text style={styles.jobTitle} numberOfLines={1}>
-          {job.title}
-        </Text>
-        <Text style={[styles.status, { color: statusColor }]}>{job.status}</Text>
-      </Row>
-      {isLive && (
-        <>
-          <ProgressBar percent={job.percent} />
-          <Row style={styles.meta}>
-            <Text style={styles.dim}>
-              {job.percent.toFixed(0)}% • {formatSpeed(job.speedBytesPerSec)}
-            </Text>
-            <Text style={styles.dim}>{formatEta(job.etaSeconds)}</Text>
-          </Row>
-        </>
-      )}
-      {isPaused && (
-        <Text style={styles.dim}>Paused at {job.percent.toFixed(0)}% — resume to continue</Text>
-      )}
-      {job.status === 'FAILED' && job.error && (
-        <Text style={styles.errorText} numberOfLines={3}>
-          {job.error}
-        </Text>
-      )}
-      <Row style={styles.actions}>
-        {isLive && (
-          <>
-            <GhostButton label="Pause" onPress={() => pauseJob(job.jobId)} style={styles.actionBtn} />
-            <GhostButton label="Cancel" onPress={() => cancelJob(job.jobId)} style={styles.actionBtn} />
-          </>
-        )}
-        {isPaused && (
-          <GhostButton label="Resume" onPress={() => resumeJob(job.jobId)} style={styles.actionBtn} />
-        )}
-        {isFinished && (
-          <GhostButton label="Clear" onPress={() => useJobs.getState().remove(job.jobId)} style={styles.actionBtn} />
-        )}
-      </Row>
-    </Card>
-  );
-}
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, padding: spacing.lg },
+const styles = {
   title: { color: colors.text, fontSize: 22, fontWeight: '800', marginBottom: spacing.md },
-  list: { gap: spacing.md },
-  card: { gap: spacing.sm },
-  header: { justifyContent: 'space-between', gap: spacing.sm },
-  jobTitle: { flex: 1, color: colors.text, fontSize: 14, fontWeight: '600' },
-  status: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  meta: { justifyContent: 'space-between' },
-  dim: { color: colors.textDim, fontSize: 12 },
-  errorText: { color: colors.warn, fontSize: 12, lineHeight: 17 },
-  actions: { gap: spacing.sm, marginTop: spacing.xs },
-  actionBtn: { flex: 1 },
-});
+};

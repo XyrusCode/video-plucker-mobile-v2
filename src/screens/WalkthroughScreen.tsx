@@ -3,11 +3,13 @@
 import * as Application from 'expo-application';
 import * as IntentLauncher from 'expo-intent-launcher';
 import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { PermissionsAndroid, type Permission } from 'react-native';
-import { GhostButton, PrimaryButton, Screen } from '../components/ui';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button, ButtonSpinner, ButtonText } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Text } from '../../components/ui/text';
 import { usePrefs } from '../stores/prefs';
-import { colors, spacing } from '../theme';
 
 const STEPS = [
   {
@@ -79,53 +81,48 @@ export default function WalkthroughScreen() {
   };
 
   return (
-    <Screen style={styles.container}>
-      <View style={styles.dots}>
+    <SafeAreaView edges={['top', 'bottom']} className="flex-1 justify-between bg-background px-6 py-6">
+      <View className="mb-6 flex-row gap-2">
         {STEPS.map((_, i) => (
-          <View key={i} style={[styles.dot, i === step && styles.dotActive]} />
+          <View
+            key={i}
+            className={i === step ? 'h-2 w-[22px] rounded-full bg-primary' : 'h-2 w-2 rounded-full bg-secondary'}
+          />
         ))}
       </View>
-      <View style={styles.card}>
-        <Text style={styles.title}>{current.title}</Text>
-        <Text style={styles.body}>{current.body}</Text>
+      <View className="flex-1 justify-center">
+        <Text size="3xl" bold className="mb-3">
+          {current.title}
+        </Text>
+        <Text size="lg" className="leading-[23px] text-muted-foreground">
+          {current.body}
+        </Text>
         {current.actions && Platform.OS === 'android' && (
-          <View style={styles.permBox}>
-            <PrimaryButton
-              label="Enable notifications & camera"
-              onPress={() => void requestRuntime()}
-              loading={busy}
-            />
-            <GhostButton label="Allow app installs" onPress={() => void allowInstalls()} />
-            {permNote && <Text style={styles.permNote}>{permNote}</Text>}
+          <View className="mt-4 gap-4">
+            <Button onPress={() => void requestRuntime()} disabled={busy}>
+              {busy ? <ButtonSpinner color="#fff" /> : <ButtonText>Enable notifications & camera</ButtonText>}
+            </Button>
+            <Button variant="outline" onPress={() => void allowInstalls()}>
+              <ButtonText>Allow app installs</ButtonText>
+            </Button>
+            {permNote && <Text size="sm" className="leading-[19px] text-muted-foreground">{permNote}</Text>}
           </View>
         )}
       </View>
-      <View style={styles.actions}>
+      <View className="mt-6 flex-row gap-4">
         {step < STEPS.length - 1 ? (
-          <GhostButton label="Skip" onPress={finishWalkthrough} />
+          <Button variant="outline" onPress={finishWalkthrough}>
+            <ButtonText>Skip</ButtonText>
+          </Button>
         ) : (
-          <GhostButton label="Back" onPress={() => setStep((s) => Math.max(0, s - 1))} />
+          <Button variant="outline" onPress={() => setStep((s) => Math.max(0, s - 1))}>
+            <ButtonText>Back</ButtonText>
+          </Button>
         )}
-        <PrimaryButton
-          label={step < STEPS.length - 1 ? 'Next' : 'Get Started'}
-          onPress={next}
-          style={styles.next}
-        />
+        <Button onPress={next} className="flex-1">
+          <ButtonText>{step < STEPS.length - 1 ? 'Next' : 'Get Started'}</ButtonText>
+        </Button>
       </View>
-    </Screen>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { padding: spacing.xl, justifyContent: 'space-between' },
-  dots: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.xl },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.panel2 },
-  dotActive: { backgroundColor: colors.accent, width: 22 },
-  card: { flex: 1, justifyContent: 'center' },
-  title: { color: colors.text, fontSize: 24, fontWeight: '800', marginBottom: spacing.md },
-  body: { color: colors.textDim, fontSize: 15, lineHeight: 23 },
-  actions: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl },
-  next: { flex: 1 },
-  permBox: { gap: spacing.md, marginTop: spacing.lg },
-  permNote: { color: colors.textDim, fontSize: 13, lineHeight: 19 },
-});

@@ -7,14 +7,13 @@ import {
   Image,
   Keyboard,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ProbeResult, QualityId } from 'yt-pluck';
-import { Card, EmptyState, GhostButton, PrimaryButton, Row, Screen } from '../components/ui';
+import { Input, Card, EmptyState, GhostButton, PrimaryButton, Row } from '../components/ui';
 import { formatDuration } from '../lib/format';
 import { platformForExtractorKey, platformForVideoUrl } from '../lib/platforms';
 import { reportFailure } from '../lib/report';
@@ -106,121 +105,119 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
   ];
 
   return (
-    <Screen>
-      <SafeAreaView edges={['top']} style={styles.safe}>
-        <Text style={styles.title}>Download</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Paste a video URL"
-          placeholderTextColor={colors.textDim}
-          value={input}
-          onChangeText={setInput}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-          onSubmitEditing={() => void analyze()}
-          returnKeyType="search"
+    <SafeAreaView edges={['top']} className="flex-1 bg-background px-4 pb-6">
+      <Text style={styles.title}>Download</Text>
+      <Input
+        style={styles.input}
+        placeholder="Paste a video URL"
+        placeholderTextColor={colors.textDim}
+        value={input}
+        onChangeText={setInput}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="url"
+        onSubmitEditing={() => void analyze()}
+        returnKeyType="search"
+      />
+      <Row style={styles.actions}>
+        <GhostButton
+          label="Clear"
+          onPress={() => {
+            setInput('');
+            setPhase('idle');
+            setError(null);
+            setDetail(null);
+          }}
+          style={styles.clearBtn}
+          disabled={!input}
         />
-        <Row style={styles.actions}>
+        <PrimaryButton
+          label="Analyze"
+          onPress={() => void analyze()}
+          loading={phase === 'analyzing'}
+          style={styles.analyzeBtn}
+          disabled={!input.trim()}
+        />
+      </Row>
+
+      {phase === 'analyzing' && (
+        <Card style={styles.card}>
+          <ActivityIndicator color={colors.accent} />
+          <Text style={styles.dim}>Analyzing…</Text>
+        </Card>
+      )}
+
+      {phase === 'error' && (
+        <Card style={styles.card}>
+          <Text style={styles.errorText}>{error}</Text>
           <GhostButton
-            label="Clear"
-            onPress={() => {
-              setInput('');
-              setPhase('idle');
-              setError(null);
-              setDetail(null);
-            }}
-            style={styles.clearBtn}
-            disabled={!input}
+            label="Report"
+            onPress={() =>
+              reportFailure({
+                title: `Analysis failed: ${lastAnalyzedUrl.slice(0, 80)}`,
+                body: buildReportBody(
+                  lastAnalyzedUrl,
+                  error ?? '',
+                  detail ?? undefined
+                ),
+                url: lastAnalyzedUrl,
+                userInitiated: true,
+              })
+            }
+            style={styles.reportBtn}
           />
-          <PrimaryButton
-            label="Analyze"
-            onPress={() => void analyze()}
-            loading={phase === 'analyzing'}
-            style={styles.analyzeBtn}
-            disabled={!input.trim()}
-          />
-        </Row>
+        </Card>
+      )}
 
-        {phase === 'analyzing' && (
+      {phase === 'ready' && probe && (
+        <View style={styles.result}>
           <Card style={styles.card}>
-            <ActivityIndicator color={colors.accent} />
-            <Text style={styles.dim}>Analyzing…</Text>
-          </Card>
-        )}
-
-        {phase === 'error' && (
-          <Card style={styles.card}>
-            <Text style={styles.errorText}>{error}</Text>
-            <GhostButton
-              label="Report"
-              onPress={() =>
-                reportFailure({
-                  title: `Analysis failed: ${lastAnalyzedUrl.slice(0, 80)}`,
-                  body: buildReportBody(
-                    lastAnalyzedUrl,
-                    error ?? '',
-                    detail ?? undefined
-                  ),
-                  url: lastAnalyzedUrl,
-                  userInitiated: true,
-                })
-              }
-              style={styles.reportBtn}
-            />
-          </Card>
-        )}
-
-        {phase === 'ready' && probe && (
-          <View style={styles.result}>
-            <Card style={styles.card}>
-              <View style={styles.metaRow}>
-                {probe.thumbnailUrl ? (
-                  <Image source={{ uri: probe.thumbnailUrl }} style={styles.thumb} />
-                ) : (
-                  <View style={[styles.thumb, styles.thumbPlaceholder]} />
-                )}
-                <View style={styles.metaText}>
-                  <Text style={styles.videoTitle} numberOfLines={2}>
-                    {probe.title}
-                  </Text>
-                  <Text style={styles.dim}>
-                    {probe.uploader ? `${probe.uploader} • ` : ''}
-                    {formatDuration(probe.durationSeconds)}
-                  </Text>
-                </View>
+            <View style={styles.metaRow}>
+              {probe.thumbnailUrl ? (
+                <Image source={{ uri: probe.thumbnailUrl }} style={styles.thumb} />
+              ) : (
+                <View style={[styles.thumb, styles.thumbPlaceholder]} />
+              )}
+              <View style={styles.metaText}>
+                <Text style={styles.videoTitle} numberOfLines={2}>
+                  {probe.title}
+                </Text>
+                <Text style={styles.dim}>
+                  {probe.uploader ? `${probe.uploader} • ` : ''}
+                  {formatDuration(probe.durationSeconds)}
+                </Text>
               </View>
-            </Card>
-
-            <Text style={styles.sectionLabel}>Quality</Text>
-            <View style={styles.chips}>
-              {qualitySet.map((q) => (
-                <Pressable
-                  key={q.id}
-                  onPress={() => setQuality(q.id)}
-                  style={[styles.chip, q.id === quality && styles.chipActive]}
-                >
-                  <Text style={[styles.chipText, q.id === quality && styles.chipTextActive]}>
-                    {q.label}
-                  </Text>
-                </Pressable>
-              ))}
             </View>
-            <Text style={styles.dim}>{qualityHeightLabel(quality)}</Text>
-            <PrimaryButton
-              label={runningCount > 0 ? 'Download (1 already running)' : 'Download'}
-              onPress={() => void download()}
-              loading={starting}
-              style={styles.downloadBtn}
-            />
-          </View>
-        )}
+          </Card>
 
-        {phase === 'idle' && (
-          <EmptyState icon="⌄" text="Paste a link, or share one into Video Plucker" />
-        )}
-      </SafeAreaView>
-    </Screen>
+          <Text style={styles.sectionLabel}>Quality</Text>
+          <View style={styles.chips}>
+            {qualitySet.map((q) => (
+              <Pressable
+                key={q.id}
+                onPress={() => setQuality(q.id)}
+                style={[styles.chip, q.id === quality && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, q.id === quality && styles.chipTextActive]}>
+                  {q.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <Text style={styles.dim}>{qualityHeightLabel(quality)}</Text>
+          <PrimaryButton
+            label={runningCount > 0 ? 'Download (1 already running)' : 'Download'}
+            onPress={() => void download()}
+            loading={starting}
+            style={styles.downloadBtn}
+          />
+        </View>
+      )}
+
+      {phase === 'idle' && (
+        <EmptyState icon="⌄" text="Paste a link, or share one into Video Plucker" />
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -231,7 +228,7 @@ function cleanEngineError(e: unknown, url: string): string {
       : typeof e === 'string'
         ? e
         : e
-          ? safeStringify(e)
+          ? JSON.stringify(e) ?? String(e)
           : '';
   const msg = raw.trim() || 'Analysis failed';
   const lower = msg.toLowerCase();
@@ -246,15 +243,7 @@ function describeError(e: unknown): string {
   if (e instanceof Error) {
     return [e.message, e.stack].filter(Boolean).join('\n');
   }
-  return typeof e === 'string' ? e : safeStringify(e);
-}
-
-function safeStringify(e: unknown): string {
-  try {
-    return JSON.stringify(e) ?? String(e);
-  } catch {
-    return String(e);
-  }
+  return typeof e === 'string' ? e : JSON.stringify(e) ?? String(e);
 }
 
 /** Human-readable report body (markdown) for a failed analysis. */

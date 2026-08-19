@@ -1,0 +1,8 @@
+﻿node.exe : npm notice run video-plucker-mobile-v2@4.12.0 npx
+At C:\Users\Xyrus\AppData\Local\hermes\node\npx.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/npm/bin/npx-cli.js" ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run ...e-v2@4.12.0 npx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm notice run tsc --noEmit -p tsconfig.json

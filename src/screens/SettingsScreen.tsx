@@ -5,7 +5,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, GhostButton, PrimaryButton, ProgressBar, Row, Screen, SectionTitle } from '../components/ui';
+import { Card, EmptyState, Row } from '../components/ui';
 import { reportUserIssue } from '../lib/report';
 import { usePrefs } from '../stores/prefs';
 import { checkForUpdates, downloadUpdate, installUpdate, type UpdateInfo } from '../services/update';
@@ -85,117 +85,112 @@ export default function SettingsScreen({
   };
 
   return (
-    <Screen>
-      <SafeAreaView edges={['top']} style={styles.safe}>
-        <Text style={styles.title}>Settings</Text>
+    <SafeAreaView edges={['top']} className="flex-1 bg-background px-6 py-6">
+      <Text style={styles.title}>Settings</Text>
 
-        <SectionTitle>Downloads</SectionTitle>
-        <Card style={styles.card}>
-          <Pressable style={styles.rowBtn} onPress={onOpenCookies}>
-            <Row style={styles.row}>
-              <Ionicons name="key" size={18} color={colors.textDim} />
-              <Text style={styles.rowLabel}>Cookie Manager</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
-            </Row>
-            <Text style={styles.dim}>Log in or import cookies.txt for sites that require it</Text>
+      <Text className="mb-4 text-xl font-bold">
+        Downloads
+      </Text>
+
+      <Card className="p-4 gap-4">
+        <Pressable onPress={onOpenCookies} className="flex-row items-center gap-2">
+          <Ionicons name="key" size={18} color={colors.textDim} />
+          <Text className="flex-1 text-foreground font-body">Cookie Manager</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
+        </Pressable>
+        <Text className="text-dim text-sm">
+          Log in or import cookies.txt for sites that require it
+        </Text>
+      </Card>
+
+      <Pressable onPress={updateEngine} disabled={updatingEngine} className="mt-3 flex-row items-center gap-2">
+        <Ionicons name="refresh" size={18} color={colors.textDim} />
+        <Text className="flex-1 text-foreground font-body">
+          {updatingEngine ? 'Updating downloader…' : 'Update downloader'}
+        </Text>
+      </Pressable>
+      {engineNote && <Text className="mt-1 text-dim text-sm">{engineNote}</Text>}
+
+      <Text className="mb-4 text-xl font-bold">
+        Browser
+      </Text>
+
+      <Card className="p-4 gap-4">
+        <Row className="flex-row items-center gap-2">
+          <Ionicons name="globe" size={18} color={colors.textDim} />
+          <Text className="flex-1 text-foreground font-body">Built-in browser</Text>
+          <Switch
+            value={browserEnabled}
+            onValueChange={setBrowserEnabled}
+            trackColor={{ false: 'var(--secondary)', true: 'var(--accentDim)' }}
+            thumbColor={browserEnabled ? 'var(--accent)' : 'var(--textDim)'}
+          />
+        </Row>
+        <Text className="mt-2 text-dim text-sm">
+          Show the browser tab for browsing and plucking videos
+        </Text>
+      </Card>
+
+      <Text className="mb-4 text-xl font-bold">
+        Updates
+      </Text>
+
+      {updatesEnabled ? (
+        <Card className="p-4 gap-4">
+          <Pressable onPress={() => void check()} disabled={phase === 'checking'} className="flex-row items-center gap-2">
+            <Ionicons name="cloud-download" size={18} color={colors.textDim} />
+            <Text className="flex-1 text-foreground font-body">
+              {phase === 'checking' ? 'Checking…' : 'Check for Updates'}
+            </Text>
           </Pressable>
-          <Pressable style={styles.rowBtn} onPress={updateEngine} disabled={updatingEngine}>
-            <Row style={styles.row}>
-              <Ionicons name="refresh" size={18} color={colors.textDim} />
-              <Text style={styles.rowLabel}>
-                {updatingEngine ? 'Updating downloader…' : 'Update downloader'}
-              </Text>
-            </Row>
-            {engineNote && <Text style={styles.dim}>{engineNote}</Text>}
-          </Pressable>
+
+          {phase === 'uptodate' && <Text className="mt-2 text-dim text-sm">You're on the latest version (v{version}).</Text>}
+          {phase === 'available' && info && (
+            <View className="mt-2 gap-2">
+              <Text className="text-foreground font-body">v{info.latestVersion} available</Text>
+              {info.notes && (
+                <Text className="mt-1 text-dim text-sm" numberOfLines={4}>{info.notes}</Text>
+              )}
+              <Button label="Download & Install" onPress={() => void downloadAndInstall()} />
+            </View>
+          )}
+          {phase === 'downloading' && (
+            <View className="mt-2 gap-2">
+              <Text className="text-dim text-sm">Downloading update…</Text>
+              <Progress value={progress} className="h-2 bg-secondary rounded-full" />
+            </View>
+          )}
+          {phase === 'installing' && <Text className="mt-2 text-dim">Opening installer…</Text>}
+          {phase === 'error' && <Text className="mt-2 text-warn">{error}</Text>}
         </Card>
-
-        <SectionTitle>Browser</SectionTitle>
-        <Card style={styles.card}>
-          <Row style={styles.row}>
-            <Ionicons name="globe" size={18} color={colors.textDim} />
-            <Text style={styles.rowLabel}>Built-in browser</Text>
-            <Switch
-              value={browserEnabled}
-              onValueChange={setBrowserEnabled}
-              trackColor={{ false: colors.panel2, true: colors.accentDim }}
-              thumbColor={browserEnabled ? colors.accent : colors.textDim}
-            />
-          </Row>
-          <Text style={styles.dim}>Show the browser tab for browsing and plucking videos</Text>
+      ) : (
+        <Card className="p-4 gap-4">
+          <Text className="text-dim">Updates are managed by your app store.</Text>
         </Card>
+      )}
 
-        <SectionTitle>Updates</SectionTitle>
-        {updatesEnabled ? (
-          <Card style={styles.card}>
-            <Pressable style={styles.rowBtn} onPress={() => void check()} disabled={phase === 'checking'}>
-              <Row style={styles.row}>
-                <Ionicons name="cloud-download" size={18} color={colors.textDim} />
-                <Text style={styles.rowLabel}>
-                  {phase === 'checking' ? 'Checking…' : 'Check for Updates'}
-                </Text>
-              </Row>
-            </Pressable>
+      <Text className="mb-4 text-xl font-bold">
+        About
+      </Text>
 
-            {phase === 'uptodate' && <Text style={styles.dim}>You're on the latest version (v{version}).</Text>}
-            {phase === 'available' && info && (
-              <View style={styles.updateBox}>
-                <Text style={styles.updateTitle}>v{info.latestVersion} available</Text>
-                {info.notes ? (
-                  <Text style={styles.dim} numberOfLines={4}>
-                    {info.notes}
-                  </Text>
-                ) : null}
-                <PrimaryButton label="Download & Install" onPress={() => void downloadAndInstall()} />
-              </View>
-            )}
-            {phase === 'downloading' && (
-              <View style={styles.updateBox}>
-                <Text style={styles.dim}>Downloading update…</Text>
-                <ProgressBar percent={progress} />
-              </View>
-            )}
-            {phase === 'installing' && <Text style={styles.dim}>Opening installer…</Text>}
-            {phase === 'error' && <Text style={styles.warnText}>{error}</Text>}
-          </Card>
-        ) : (
-          <Card style={styles.card}>
-            <Text style={styles.dim}>Updates are managed by your app store.</Text>
-          </Card>
-        )}
-
-        <SectionTitle>About</SectionTitle>
-        <Card style={styles.card}>
-          <Text style={styles.rowLabel}>Video Plucker</Text>
-          <Text style={styles.dim}>
-            Version {version} {__DEV__ ? '(dev)' : ''}
-          </Text>
-          <Text style={styles.dim}>
-            Engine: {engineBooted ? 'ready' : 'not booted'} • yt-dlp + ffmpeg
-          </Text>
-          <Text style={styles.dim}>Downloads: YouTube, X/Twitter, TikTok, Instagram, Facebook, Reddit, VK</Text>
-          <Pressable style={styles.rowBtn} onPress={reportUserIssue}>
-            <Row style={styles.row}>
-              <Ionicons name="bug" size={18} color={colors.textDim} />
-              <Text style={styles.rowLabel}>Report an issue</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
-            </Row>
-          </Pressable>
-        </Card>
-      </SafeAreaView>
-    </Screen>
+      <Card className="p-4 gap-4">
+        <Text className="text-foreground font-body">Video Plucker</Text>
+        <Text className="text-dim">
+          Version {version} {__DEV__ ? '(dev)' : ''}
+        </Text>
+        <Text className="text-dim">Engine: {engineBooted ? 'ready' : 'not booted'} • yt-dlp + ffmpeg</Text>
+        <Text className="text-dim">Downloads: YouTube, X/Twitter, TikTok, Instagram, Facebook, Reddit, VK</Text>
+        <Pressable onPress={reportUserIssue} className="mt-3 flex-row items-center gap-2">
+          <Ionicons name="bug" size={18} color={colors.textDim} />
+          <Text className="flex-1 text-foreground font-body">Report an issue</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
+        </Pressable>
+      </Card>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, padding: spacing.lg },
   title: { color: colors.text, fontSize: 22, fontWeight: '800', marginBottom: spacing.lg },
-  card: { gap: spacing.sm, marginBottom: spacing.xl },
-  rowBtn: { gap: 4 },
-  row: { gap: spacing.sm, alignItems: 'center' },
-  rowLabel: { flex: 1, color: colors.text, fontSize: 15, fontWeight: '600' },
-  dim: { color: colors.textDim, fontSize: 12, lineHeight: 17 },
-  warnText: { color: colors.warn, fontSize: 13 },
-  updateBox: { gap: spacing.sm, paddingTop: spacing.sm },
-  updateTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
 });

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Video Plucker",
     "slug": "video-plucker",
-    "version": "5.1.1",
+    "version": "5.1.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "xyrus.code.ytplucker",
-      "versionCode": 30,
+      "versionCode": 31,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FF3D3D",

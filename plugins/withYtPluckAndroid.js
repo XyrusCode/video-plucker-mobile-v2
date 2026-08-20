@@ -28,7 +28,7 @@ const IS_FDROID = process.env.EXPO_PUBLIC_STORE === 'fdroid';
 
 const GRADLE_BLOCK = `
 // Added by withYtPluckAndroid (Video Plucker V2)
-def enableAbiSplits = !project.hasProperty('noAbiSplits')
+def enableAbiSplits = project.hasProperty('abiSplits')
 android {
   packaging {
     jniLibs {

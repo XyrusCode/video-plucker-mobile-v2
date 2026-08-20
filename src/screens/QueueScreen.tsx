@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../../components/ui/text';
 import { Progress } from '../../components/ui/progress';
 import { Button, ButtonText } from '../../components/ui/button';
+import { reportFailure } from '../lib/report';
 import { activeJobCount, pauseJob, resumeJob, useJobs } from '../stores/jobs';
 import { usePrefs } from '../stores/prefs';
 import { formatEta, formatSpeed } from '../lib/format';
@@ -62,6 +63,29 @@ export default function QueueScreen() {
                   {job.error}
                 </Text>
               )}
+              {job.status === 'FAILED' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={() =>
+                    void reportFailure({
+                      title: `Download failed: ${job.title.slice(0, 80)}`,
+                      body: [
+                        `**Title:** ${job.title}`,
+                        `**URL:** ${job.url}`,
+                        '**Error:**',
+                        '```',
+                        job.error ?? 'no error detail',
+                        '```',
+                      ].join('\n'),
+                      url: job.url,
+                      userInitiated: true,
+                    })
+                  }
+                >
+                  <ButtonText>Report</ButtonText>
+                </Button>
+              )}
               <View className="mt-3 flex gap-2">
                 {job.status === 'RUNNING' || job.status === 'QUEUED' && (
                   <Button variant="outline" size="sm" onPress={() => void pauseJob(job.jobId)}>
@@ -88,5 +112,5 @@ export default function QueueScreen() {
 }
 
 const styles = {
-  title: { color: colors.text, fontSize: 22, fontWeight: '800', marginBottom: spacing.md },
+  title: { color: colors.text, fontSize: 22, fontWeight: '800' as const, marginBottom: spacing.md },
 };

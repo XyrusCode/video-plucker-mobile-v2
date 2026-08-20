@@ -1,14 +1,14 @@
 // Self-update checker — port of V1's UpdateChecker.kt. The JS layer owns the update flow
-// (GitLab Releases API check → download → install), mirroring the app-foreground-only UX of V1.
+// (GitHub Releases API check → download → install), mirroring the app-foreground-only UX of V1.
 
 import * as Application from 'expo-application';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 
-// Project must be public for unauthenticated in-app checks and APK downloads to work.
-const PROJECT_PATH = 'XyrusCode/video-plucker-mobile-v2';
-const PROJECT_API_ID = encodeURIComponent(PROJECT_PATH);
-const GITLAB = 'https://gitlab.com';
+// Repo moved from GitLab to GitHub; releases are mirrored to R2 under
+// https://releases.xyruscode.com/mobile/v<VERSION>/ (see the ecosystem release workflow).
+const REPO = 'XyrusCode/video-plucker-mobile-v2';
+const GITHUB = 'https://api.github.com';
 
 export interface UpdateInfo {
   latestVersion: string;
@@ -25,35 +25,32 @@ export interface UpdateProgress {
 }
 
 /**
- * Check GitLab for a newer release. Returns null when the installed version is current
+ * Check GitHub for a newer release. Returns null when the installed version is current
  * (or the check fails — a failed check is not a hard error, the UI shows "up to date").
  */
 export async function checkForUpdates(): Promise<UpdateInfo | null> {
   const current = Application.nativeApplicationVersion;
-  const res = await fetch(
-    `${GITLAB}/api/v4/projects/${PROJECT_API_ID}/releases/permalink/latest`,
-    { headers: { Accept: 'application/json' } }
-  );
+  const res = await fetch(`${GITHUB}/repos/${REPO}/releases/latest`, {
+    headers: { Accept: 'application/json' },
+  });
   if (!res.ok) return null;
   const release = await res.json();
   const tag = String(release.tag_name ?? '').replace(/^v/, '');
   if (!tag || !current || isVersionAtLeast(current, tag)) return null;
 
-  const assetLink = (release.assets?.links ?? []).find(
-    (l: { name?: string; url?: string }) =>
-      l.name === 'app-universal-release.apk' ||
-      /universal.*\.apk$/i.test(l.name ?? '') ||
-      (l.url ?? '').includes('app-universal-release.apk')
+  const asset = (release.assets ?? []).find(
+    (a: { name?: string }) =>
+      a.name === 'app-universal-release.apk' ||
+      (a.name ?? '').includes('app-universal-release.apk')
   );
   const downloadUrl =
-    assetLink?.direct_asset_url ??
-    assetLink?.url ??
-    `${GITLAB}/${PROJECT_PATH}/-/packages/generic/video-plucker/${tag}/app-universal-release.apk`;
+    (asset as { browser_download_url?: string } | undefined)?.browser_download_url ??
+    `https://releases.xyruscode.com/mobile/v${tag}/app-universal-release.apk`;
   return {
     latestVersion: tag,
     downloadUrl,
-    notes: release.description ?? null,
-    sizeBytes: 0,
+    notes: release.body ?? null,
+    sizeBytes: (asset as { size?: number } | undefined)?.size ?? 0,
   };
 }
 

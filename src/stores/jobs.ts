@@ -40,7 +40,7 @@ export function subscribeToJobEvents() {
     // failure is captured even if the user never opens the queue.
     if (event.status === 'FAILED' && !reportedFailures.has(event.jobId)) {
       reportedFailures.add(event.jobId);
-      reportFailure({
+      void reportFailure({
         title: `Download failed: ${event.title.slice(0, 80)}`,
         body: [
           `**Title:** ${event.title}`,

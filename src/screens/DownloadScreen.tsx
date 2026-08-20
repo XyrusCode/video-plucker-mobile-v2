@@ -74,7 +74,7 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
       setProbe(null);
       setPhase('error');
       // Every analysis failure lands in Sentry automatically.
-      reportFailure({
+      void reportFailure({
         title: `Analysis failed: ${target.slice(0, 80)}`,
         body: buildReportBody(target, cleanEngineError(e, target), describeError(e)),
         url: target,
@@ -154,7 +154,7 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
           <GhostButton
             label="Report"
             onPress={() =>
-              reportFailure({
+              void reportFailure({
                 title: `Analysis failed: ${lastAnalyzedUrl.slice(0, 80)}`,
                 body: buildReportBody(
                   lastAnalyzedUrl,

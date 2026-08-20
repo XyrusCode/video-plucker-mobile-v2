@@ -46,7 +46,8 @@
     },
     "plugins": [
       "@react-native-firebase/app",
-      "./plugins/withYtPluckAndroid"
+      "./plugins/withYtPluckAndroid",
+      "expo-font"
     ],
     "extra": {
       "eas": {

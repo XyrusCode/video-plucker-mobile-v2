@@ -15,6 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, type WebViewNavigation, type WebViewMessageEvent } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
+import { SUPPORTED_PLATFORMS, platformForVideoUrl, webFallbackFromAppLink } from '../lib/platforms';
+import { useSharedUrl } from '../stores/sharedUrl';
 import { colors, radii, spacing } from '../theme';
 
 /** Scroll listener bridging page scroll direction to the JS chrome (8px threshold, like V1). */

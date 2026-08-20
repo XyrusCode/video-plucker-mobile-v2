@@ -7,13 +7,14 @@ import {
   Image,
   Keyboard,
   Pressable,
+  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ProbeResult, QualityId } from 'yt-pluck';
-import { Input, Card, EmptyState, GhostButton, PrimaryButton, Row } from '../components/ui';
+import { Card, EmptyState, GhostButton, PrimaryButton, Row } from '../components/ui';
 import { formatDuration } from '../lib/format';
 import { platformForExtractorKey, platformForVideoUrl } from '../lib/platforms';
 import { reportFailure } from '../lib/report';
@@ -107,7 +108,7 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background px-4 pb-6">
       <Text style={styles.title}>Download</Text>
-      <Input
+      <TextInput
         style={styles.input}
         placeholder="Paste a video URL"
         placeholderTextColor={colors.textDim}

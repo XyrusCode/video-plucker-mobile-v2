@@ -6,6 +6,8 @@ import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, EmptyState, Row } from '../components/ui';
+import { Button, ButtonText } from '../../components/ui/button';
+import { Progress } from '../../components/ui/progress';
 import { reportUserIssue } from '../lib/report';
 import { usePrefs } from '../stores/prefs';
 import { checkForUpdates, downloadUpdate, installUpdate, type UpdateInfo } from '../services/update';
@@ -151,7 +153,9 @@ export default function SettingsScreen({
               {info.notes && (
                 <Text className="mt-1 text-dim text-sm" numberOfLines={4}>{info.notes}</Text>
               )}
-              <Button label="Download & Install" onPress={() => void downloadAndInstall()} />
+              <Button onPress={() => void downloadAndInstall()}>
+                <ButtonText>Download & Install</ButtonText>
+              </Button>
             </View>
           )}
           {phase === 'downloading' && (

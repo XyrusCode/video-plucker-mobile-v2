@@ -1,1 +1,220 @@
-믯榿灭牯⁴敒捡ⱴ笠映牯慷摲敒ⱦ洠浥⁯⁽牦浯✠敲捡❴഻椊灭牯⁴⁻ㅈ‬㉈‬㍈‬㑈‬㕈‬㙈素映潲⁭䀧硥潰栯浴⵬汥浥湥獴㬧਍浩潰瑲笠栠慥楤杮瑓汹⁥⁽牦浯✠⼮瑳汹獥㬧਍浩潰瑲琠灹⁥⁻慖楲湡側潲獰素映潲⁭䀧汧敵瑳捡⵫極甯楴獬港瑡癩睥湩ⵤ瑵汩❳഻椊灭牯⁴⁻獣䥳瑮牥灯素映潲⁭渧瑡癩睥湩❤഻ഊ琊灹⁥䡉慥楤杮牐灯⁳‽慖楲湡側潲獰琼灹潥⁦敨摡湩卧祴敬‾ദ 删慥瑣䌮浯潰敮瑮牐灯坳瑩潨瑵敒㱦祴数景䠠㸱☠笠਍††獡㨿删慥瑣䔮敬敭瑮祔数഻ 素഻ഊ挊獳湉整潲⡰ㅈ‬⁻汣獡乳浡㩥✠瑳汹❥素㬩਍獣䥳瑮牥灯䠨ⰲ笠挠慬獳慎敭›猧祴敬‧⥽഻挊獳湉整潲⡰㍈‬⁻汣獡乳浡㩥✠瑳汹❥素㬩਍獣䥳瑮牥灯䠨ⰴ笠挠慬獳慎敭›猧祴敬‧⥽഻挊獳湉整潲⡰㕈‬⁻汣獡乳浡㩥✠瑳汹❥素㬩਍獣䥳瑮牥灯䠨ⰶ笠挠慬獳慎敭›猧祴敬‧⥽഻ഊ挊湯瑳䴠灡数䡤慥楤杮㴠洠浥⡯਍†潦睲牡剤晥刼慥瑣䌮浯潰敮瑮敒㱦祴数景䠠㸱‬䡉慥楤杮牐灯㹳ന †映湵瑣潩⁮慍灰摥效摡湩⡧਍†††ൻ †††猠穩ⱥ਍††††汣獡乳浡ⱥ਍††††獩牔湵慣整Ɽ਍††††潢摬ബ †††甠摮牥楬敮ബ †††猠牴歩呥牨畯桧ബ †††猠扵ബ †††椠慴楬Ᵽ਍††††楨桧楬桧ⱴ਍††††⸮瀮潲獰਍†††ⱽ਍†††敲൦ †⤠笠਍†††睳瑩档⠠楳敺 ൻ †††挠獡⁥㔧汸㨧਍††††慣敳✠破❬ഺ †††挠獡⁥㌧汸㨧਍†††††敲畴湲⠠਍††††††䠼റ ††††††挠慬獳慎敭笽敨摡湩卧祴敬笨਍††††††††楳敺ബ †††††††椠味畲据瑡摥›獩牔湵慣整⁤獡戠潯敬湡ബ †††††††戠汯㩤戠汯⁤獡戠潯敬湡ബ †††††††甠摮牥楬敮›湵敤汲湩⁥獡戠潯敬湡ബ †††††††猠牴歩呥牨畯桧›瑳楲敫桔潲杵⁨獡戠潯敬湡ബ †††††††猠扵›畳⁢獡戠潯敬湡ബ †††††††椠慴楬㩣椠慴楬⁣獡戠潯敬湡ബ †††††††栠杩汨杩瑨›楨桧楬桧⁴獡戠潯敬湡ബ †††††††挠慬獳›汣獡乳浡ⱥ਍†††††††⥽ൽ ††††††笠⸮瀮潲獰ൽ ††††††⼠ 瑀⵳杩潮敲਍†††††††敲㵦牻晥ൽ †††††⼠ാ ††††⤠഻ †††挠獡⁥㈧汸㨧਍†††††敲畴湲⠠਍††††††䠼ല ††††††挠慬獳慎敭笽敨摡湩卧祴敬笨਍††††††††楳敺ബ †††††††椠味畲据瑡摥›獩牔湵慣整⁤獡戠潯敬湡ബ †††††††戠汯㩤戠汯⁤獡戠潯敬湡ബ †††††††甠摮牥楬敮›湵敤汲湩⁥獡戠潯敬湡ബ †††††††猠牴歩呥牨畯桧›瑳楲敫桔潲杵⁨獡戠潯敬湡ബ †††††††猠扵›畳⁢獡戠潯敬湡ബ †††††††椠慴楬㩣椠慴楬⁣獡戠潯敬湡ബ †††††††栠杩汨杩瑨›楨桧楬桧⁴獡戠潯敬湡ബ †††††††挠慬獳›汣獡乳浡ⱥ਍†††††††⥽ൽ ††††††笠⸮瀮潲獰ൽ ††††††⼠ 瑀⵳杩潮敲਍†††††††敲㵦牻晥ൽ †††††⼠ാ ††††⤠഻ †††挠獡⁥砧❬ഺ ††††爠瑥牵⁮ന †††††㰠㍈਍†††††††汣獡乳浡㵥桻慥楤杮瑓汹⡥ൻ †††††††猠穩ⱥ਍††††††††獩牔湵慣整㩤椠味畲据瑡摥愠⁳潢汯慥Ɱ਍††††††††潢摬›潢摬愠⁳潢汯慥Ɱ਍††††††††湵敤汲湩㩥甠摮牥楬敮愠⁳潢汯慥Ɱ਍††††††††瑳楲敫桔潲杵㩨猠牴歩呥牨畯桧愠⁳潢汯慥Ɱ਍††††††††畳㩢猠扵愠⁳潢汯慥Ɱ਍††††††††瑩污捩›瑩污捩愠⁳潢汯慥Ɱ਍††††††††楨桧楬桧㩴栠杩汨杩瑨愠⁳潢汯慥Ɱ਍††††††††汣獡㩳挠慬獳慎敭ബ ††††††素紩਍†††††††⹻⸮牰灯絳਍†††††††⼯䀠獴椭湧牯൥ ††††††爠晥笽敲給਍††††††㸯਍†††††㬩਍††††慣敳✠杬㨧਍†††††敲畴湲⠠਍††††††䠼ഴ ††††††挠慬獳慎敭笽敨摡湩卧祴敬笨਍††††††††楳敺ബ †††††††椠味畲据瑡摥›獩牔湵慣整⁤獡戠潯敬湡ബ †††††††戠汯㩤戠汯⁤獡戠潯敬湡ബ †††††††甠摮牥楬敮›湵敤汲湩⁥獡戠潯敬湡ബ †††††††猠牴歩呥牨畯桧›瑳楲敫桔潲杵⁨獡戠潯敬湡ബ †††††††猠扵›畳⁢獡戠潯敬湡ബ †††††††椠慴楬㩣椠慴楬⁣獡戠潯敬湡ബ †††††††栠杩汨杩瑨›楨桧楬桧⁴獡戠潯敬湡ബ †††††††挠慬獳›汣獡乳浡ⱥ਍†††††††⥽ൽ ††††††笠⸮瀮潲獰ൽ ††††††⼠ 瑀⵳杩潮敲਍†††††††敲㵦牻晥ൽ †††††⼠ാ ††††⤠഻ †††挠獡⁥洧❤ഺ ††††爠瑥牵⁮ന †††††㰠㕈਍†††††††汣獡乳浡㵥桻慥楤杮瑓汹⡥ൻ †††††††猠穩ⱥ਍††††††††獩牔湵慣整㩤椠味畲据瑡摥愠⁳潢汯慥Ɱ਍††††††††潢摬›潢摬愠⁳潢汯慥Ɱ਍††††††††湵敤汲湩㩥甠摮牥楬敮愠⁳潢汯慥Ɱ਍††††††††瑳楲敫桔潲杵㩨猠牴歩呥牨畯桧愠⁳潢汯慥Ɱ਍††††††††畳㩢猠扵愠⁳潢汯慥Ɱ਍††††††††瑩污捩›瑩污捩愠⁳潢汯慥Ɱ਍††††††††楨桧楬桧㩴栠杩汨杩瑨愠⁳潢汯慥Ɱ਍††††††††汣獡㩳挠慬獳慎敭ബ ††††††素紩਍†††††††⹻⸮牰灯絳਍†††††††⼯䀠獴椭湧牯൥ ††††††爠晥笽敲給਍††††††㸯਍†††††㬩਍††††慣敳✠浳㨧਍††††慣敳✠獸㨧਍†††††敲畴湲⠠਍††††††䠼ശ ††††††挠慬獳慎敭笽敨摡湩卧祴敬笨਍††††††††楳敺ബ †††††††椠味畲据瑡摥›獩牔湵慣整⁤獡戠潯敬湡ബ †††††††戠汯㩤戠汯⁤獡戠潯敬湡ബ †††††††甠摮牥楬敮›湵敤汲湩⁥獡戠潯敬湡ബ †††††††猠牴歩呥牨畯桧›瑳楲敫桔潲杵⁨獡戠潯敬湡ബ †††††††猠扵›畳⁢獡戠潯敬湡ബ †††††††椠慴楬㩣椠慴楬⁣獡戠潯敬湡ബ †††††††栠杩汨杩瑨›楨桧楬桧⁴獡戠潯敬湡ബ †††††††挠慬獳›汣獡乳浡ⱥ਍†††††††⥽ൽ ††††††笠⸮瀮潲獰ൽ ††††††⼠ 瑀⵳杩潮敲਍†††††††敲㵦牻晥ൽ †††††⼠ാ ††††⤠഻ †††搠晥畡瑬ഺ ††††爠瑥牵⁮ന †††††㰠㑈਍†††††††汣獡乳浡㵥桻慥楤杮瑓汹⡥ൻ †††††††猠穩ⱥ਍††††††††獩牔湵慣整㩤椠味畲据瑡摥愠⁳潢汯慥Ɱ਍††††††††潢摬›潢摬愠⁳潢汯慥Ɱ਍††††††††湵敤汲湩㩥甠摮牥楬敮愠⁳潢汯慥Ɱ਍††††††††瑳楲敫桔潲杵㩨猠牴歩呥牨畯桧愠⁳潢汯慥Ɱ਍††††††††畳㩢猠扵愠⁳潢汯慥Ɱ਍††††††††瑩污捩›瑩污捩愠⁳潢汯慥Ɱ਍††††††††楨桧楬桧㩴栠杩汨杩瑨愠⁳潢汯慥Ɱ਍††††††††汣獡㩳挠慬獳慎敭ബ ††††††素紩਍†††††††⹻⸮牰灯絳਍†††††††⼯䀠獴椭湧牯൥ ††††††爠晥笽敲給਍††††††㸯਍†††††㬩਍†††ൽ †素਍†ഩ⤊഻ഊ挊湯瑳䠠慥楤杮㴠洠浥⡯਍†潦睲牡剤晥刼慥瑣䌮浯潰敮瑮敒㱦祴数景䠠㸱‬䡉慥楤杮牐灯㹳昨湵瑣潩⁮效摡湩⡧਍††⁻汣獡乳浡ⱥ猠穩⁥‽氧❧‬獡›獁潃灭‬⸮瀮潲獰素ബ †爠晥਍† ൻ †挠湯瑳笠਍†††獩牔湵慣整Ɽ਍†††潢摬ബ ††甠摮牥楬敮ബ ††猠牴歩呥牨畯桧ബ ††猠扵ബ ††椠慴楬Ᵽ਍†††楨桧楬桧ⱴ਍††⁽‽牰灯㭳਍਍††晩⠠獁潃灭 ൻ ††爠瑥牵⁮ന †††㰠獁潃灭਍†††††汣獡乳浡㵥桻慥楤杮瑓汹⡥ൻ †††††猠穩ⱥ਍††††††獩牔湵慣整㩤椠味畲据瑡摥愠⁳潢汯慥Ɱ਍††††††潢摬›潢摬愠⁳潢汯慥Ɱ਍††††††湵敤汲湩㩥甠摮牥楬敮愠⁳潢汯慥Ɱ਍††††††瑳楲敫桔潲杵㩨猠牴歩呥牨畯桧愠⁳潢汯慥Ɱ਍††††††畳㩢猠扵愠⁳潢汯慥Ɱ਍††††††瑩污捩›瑩污捩愠⁳潢汯慥Ɱ਍††††††楨桧楬桧㩴栠杩汨杩瑨愠⁳潢汯慥Ɱ਍††††††汣獡㩳挠慬獳慎敭ബ ††††素紩਍†††††⹻⸮牰灯絳਍††††㸯਍†††㬩਍††ൽഊ †爠瑥牵⁮ന ††㰠慍灰摥效摡湩⁧汣獡乳浡㵥捻慬獳慎敭⁽楳敺笽楳敺⁽敲㵦牻晥⁽⹻⸮牰灯絳⼠ാ †⤠഻ 素ഩ⤊഻ഊ䠊慥楤杮搮獩汰祡慎敭㴠✠效摡湩❧഻ഊ攊灸牯⁴⁻效摡湩⁧㭽਍
+import React, { forwardRef, memo } from 'react';
+import { H1, H2, H3, H4, H5, H6 } from '@expo/html-elements';
+import { headingStyle } from './styles';
+import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
+import { cssInterop } from 'nativewind';
+
+type IHeadingProps = VariantProps<typeof headingStyle> &
+  React.ComponentPropsWithoutRef<typeof H1> & {
+    as?: React.ElementType;
+  };
+
+cssInterop(H1, { className: 'style' });
+cssInterop(H2, { className: 'style' });
+cssInterop(H3, { className: 'style' });
+cssInterop(H4, { className: 'style' });
+cssInterop(H5, { className: 'style' });
+cssInterop(H6, { className: 'style' });
+
+const MappedHeading = memo(
+  forwardRef<React.ComponentRef<typeof H1>, IHeadingProps>(
+    function MappedHeading(
+      {
+        size,
+        className,
+        isTruncated,
+        bold,
+        underline,
+        strikeThrough,
+        sub,
+        italic,
+        highlight,
+        ...props
+      },
+      ref
+    ) {
+      switch (size) {
+        case '5xl':
+        case '4xl':
+        case '3xl':
+          return (
+            <H1
+              className={headingStyle({
+                size,
+                isTruncated: isTruncated as boolean,
+                bold: bold as boolean,
+                underline: underline as boolean,
+                strikeThrough: strikeThrough as boolean,
+                sub: sub as boolean,
+                italic: italic as boolean,
+                highlight: highlight as boolean,
+                class: className,
+              })}
+              {...props}
+              // @ts-ignore
+              ref={ref}
+            />
+          );
+        case '2xl':
+          return (
+            <H2
+              className={headingStyle({
+                size,
+                isTruncated: isTruncated as boolean,
+                bold: bold as boolean,
+                underline: underline as boolean,
+                strikeThrough: strikeThrough as boolean,
+                sub: sub as boolean,
+                italic: italic as boolean,
+                highlight: highlight as boolean,
+                class: className,
+              })}
+              {...props}
+              // @ts-ignore
+              ref={ref}
+            />
+          );
+        case 'xl':
+          return (
+            <H3
+              className={headingStyle({
+                size,
+                isTruncated: isTruncated as boolean,
+                bold: bold as boolean,
+                underline: underline as boolean,
+                strikeThrough: strikeThrough as boolean,
+                sub: sub as boolean,
+                italic: italic as boolean,
+                highlight: highlight as boolean,
+                class: className,
+              })}
+              {...props}
+              // @ts-ignore
+              ref={ref}
+            />
+          );
+        case 'lg':
+          return (
+            <H4
+              className={headingStyle({
+                size,
+                isTruncated: isTruncated as boolean,
+                bold: bold as boolean,
+                underline: underline as boolean,
+                strikeThrough: strikeThrough as boolean,
+                sub: sub as boolean,
+                italic: italic as boolean,
+                highlight: highlight as boolean,
+                class: className,
+              })}
+              {...props}
+              // @ts-ignore
+              ref={ref}
+            />
+          );
+        case 'md':
+          return (
+            <H5
+              className={headingStyle({
+                size,
+                isTruncated: isTruncated as boolean,
+                bold: bold as boolean,
+                underline: underline as boolean,
+                strikeThrough: strikeThrough as boolean,
+                sub: sub as boolean,
+                italic: italic as boolean,
+                highlight: highlight as boolean,
+                class: className,
+              })}
+              {...props}
+              // @ts-ignore
+              ref={ref}
+            />
+          );
+        case 'sm':
+        case 'xs':
+          return (
+            <H6
+              className={headingStyle({
+                size,
+                isTruncated: isTruncated as boolean,
+                bold: bold as boolean,
+                underline: underline as boolean,
+                strikeThrough: strikeThrough as boolean,
+                sub: sub as boolean,
+                italic: italic as boolean,
+                highlight: highlight as boolean,
+                class: className,
+              })}
+              {...props}
+              // @ts-ignore
+              ref={ref}
+            />
+          );
+        default:
+          return (
+            <H4
+              className={headingStyle({
+                size,
+                isTruncated: isTruncated as boolean,
+                bold: bold as boolean,
+                underline: underline as boolean,
+                strikeThrough: strikeThrough as boolean,
+                sub: sub as boolean,
+                italic: italic as boolean,
+                highlight: highlight as boolean,
+                class: className,
+              })}
+              {...props}
+              // @ts-ignore
+              ref={ref}
+            />
+          );
+      }
+    }
+  )
+);
+
+const Heading = memo(
+  forwardRef<React.ComponentRef<typeof H1>, IHeadingProps>(function Heading(
+    { className, size = 'lg', as: AsComp, ...props },
+    ref
+  ) {
+    const {
+      isTruncated,
+      bold,
+      underline,
+      strikeThrough,
+      sub,
+      italic,
+      highlight,
+    } = props;
+
+    if (AsComp) {
+      return (
+        <AsComp
+          className={headingStyle({
+            size,
+            isTruncated: isTruncated as boolean,
+            bold: bold as boolean,
+            underline: underline as boolean,
+            strikeThrough: strikeThrough as boolean,
+            sub: sub as boolean,
+            italic: italic as boolean,
+            highlight: highlight as boolean,
+            class: className,
+          })}
+          {...props}
+        />
+      );
+    }
+
+    return (
+      <MappedHeading className={className} size={size} ref={ref} {...props} />
+    );
+  })
+);
+
+Heading.displayName = 'Heading';
+
+export { Heading };

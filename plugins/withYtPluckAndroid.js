@@ -6,9 +6,10 @@
  *     extractNativeLibs on the application, and a SEND (share-target) intent-filter on
  *     MainActivity so the app appears in the Android share sheet.
  *  2. Build: legacy packaging so the bundled yt-dlp native libs (Python payloads) stay as
- *     files, plus per-ABI splits (arm64-v8a, armeabi-v7a, x86_64) like V1. Passing
- *     `-PnoAbiSplits` to gradle disables the splits so a single universal APK is emitted
- *     (the `universalApk` abi-split option was removed in newer AGP/Gradle 9 toolchains).
+ *     files, plus per-ABI splits targeting arm64-v8a by default (EAS CI outputs a single
+ *     installable APK). Pass `-PallAbis` to gradle to include all three ABIs
+ *     (arm64-v8a, armeabi-v7a, x86_64). Pass `-PnoAbiSplits` to disable splits entirely
+ *     and emit a single universal APK.
  */
 const {
   withAndroidManifest,
@@ -28,7 +29,7 @@ const IS_FDROID = process.env.EXPO_PUBLIC_STORE === 'fdroid';
 
 const GRADLE_BLOCK = `
 // Added by withYtPluckAndroid (Video Plucker V2)
-def enableAbiSplits = project.hasProperty('abiSplits')
+def enableAbiSplits = !project.hasProperty('noAbiSplits')
 android {
   packaging {
     jniLibs {
@@ -40,7 +41,11 @@ android {
       abi {
         enable true
         reset()
-        include 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+        if (project.hasProperty('allAbis')) {
+          include 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+        } else {
+          include 'arm64-v8a'
+        }
       }
     }
   }

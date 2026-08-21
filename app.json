@@ -51,7 +51,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "22cffe7f-0a83-4244-81c8-90234734f500"
+        "projectId": "c8c3c525-3e65-401b-9a37-2d245ecd1707"
       }
     },
     "owner": "xyrus",
@@ -59,7 +59,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/22cffe7f-0a83-4244-81c8-90234734f500"
+      "url": ""
     }
   }
 }

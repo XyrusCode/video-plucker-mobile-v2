@@ -85,6 +85,7 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
   const download = async () => {
     if (!probe) return;
     setStarting(true);
+    setPhase('idle');
     try {
       const platform =
         platformForExtractorKey(probe.source ?? '') ?? platformForVideoUrl(lastAnalyzedUrl);
@@ -92,7 +93,15 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
       await startDownload(lastAnalyzedUrl, quality);
       onGoToQueue();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to start download');
+      const msg = e instanceof Error ? e.message : 'Failed to start download';
+      setError(msg);
+      setPhase('error');
+      // Report start failures to GitHub/Sentry automatically.
+      void reportFailure({
+        title: `Download failed to start: ${lastAnalyzedUrl.slice(0, 80)}`,
+        body: buildReportBody(lastAnalyzedUrl, msg),
+        url: lastAnalyzedUrl,
+      });
     } finally {
       setStarting(false);
     }
@@ -155,7 +164,7 @@ export default function DownloadScreen({ onGoToQueue }: { onGoToQueue: () => voi
             label="Report"
             onPress={() =>
               void reportFailure({
-                title: `Analysis failed: ${lastAnalyzedUrl.slice(0, 80)}`,
+                title: `Error: ${lastAnalyzedUrl.slice(0, 80)}`,
                 body: buildReportBody(
                   lastAnalyzedUrl,
                   error ?? '',

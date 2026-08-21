@@ -151,6 +151,6 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 14,
   },
-  tabItem: { paddingTop: 6, paddingBottom: 4 },
-  tabLabel: { fontSize: 10, fontWeight: '600' },
+  tabItem: { alignItems: 'center', justifyContent: 'center' },
+  tabLabel: { fontSize: 10, fontWeight: '600', marginTop: 0 },
 });
